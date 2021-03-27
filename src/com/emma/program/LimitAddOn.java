@@ -293,6 +293,44 @@ public final class LimitAddOn extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "Error Message: " + e.getMessage());
         }
     } // done
+    
+    
+    private void showLimitDetail() throws Exception {
+        DefaultTableModel modelHeader = (DefaultTableModel) tblLimitHeader.getModel();
+        int SelectedRowIndex = tblLimitHeader.getSelectedRow();
+        
+        String kodeLimit;
+        if(SelectedRowIndex == -1){
+            kodeLimit = "-1";
+        } else {
+           kodeLimit = (String) modelHeader.getValueAt(SelectedRowIndex, 0);
+        }
+        
+        try {
+            String query;
+            query = "select * from limit_dt where kode_limit = " + kodeLimit +" order by kode_limit desc";
+            Connection conn = (Connection) DatabaseConnection.getConnection(dbName2);
+            Statement stm = conn.createStatement();
+            ResultSet res = stm.executeQuery(query);
+            DefaultTableModel model = (DefaultTableModel) tblLimitDetail.getModel();
+            model.setRowCount(0);
+
+            while (res.next()) {
+                SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+              
+                isStatusColumn = res.getBoolean("status");
+                if (isStatusColumn == true) {
+                    statusColumn = "Aktif";
+                } else {
+                    statusColumn = "Non Aktif";
+                }
+                model.addRow(new Object[]{res.getString("kode_limit"), res.getString("reseller"), res.getString("transaksi_sedang_proses"), res.getString("transaksi_dalam_masa"), res.getString("transaksi_total"), statusColumn});
+            }
+        } catch (SQLException e) {
+            System.out.println("Error Message: " + e.getMessage());
+            JOptionPane.showMessageDialog(null, "Error Message: " + e.getMessage());
+        }
+    }
 
     private void configLimitTable() throws Exception {
 
@@ -680,6 +718,16 @@ public final class LimitAddOn extends javax.swing.JFrame {
         tblLimitHeader.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         tblLimitHeader.setGridColor(new java.awt.Color(51, 51, 255));
         tblLimitHeader.setRowHeight(20);
+        tblLimitHeader.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tblLimitHeaderMouseClicked(evt);
+            }
+        });
+        tblLimitHeader.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                tblLimitHeaderKeyPressed(evt);
+            }
+        });
         jScrollPane3.setViewportView(tblLimitHeader);
         if (tblLimitHeader.getColumnModel().getColumnCount() > 0) {
             tblLimitHeader.getColumnModel().getColumn(0).setResizable(false);
@@ -1251,15 +1299,21 @@ public final class LimitAddOn extends javax.swing.JFrame {
 
     }//GEN-LAST:event_cmbGrupItemStateChanged
 
+    @SuppressWarnings("empty-statement")
     private void btnRefreshDataActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRefreshDataActionPerformed
         // TODO add your handling code here:
-        txtSearchFilterHeader = null;
-
-        //searchTableHeaderFilter();
+        txtSearchFilterHeader.setText(null);
+        searchTableHeaderFilter();
         defaultSelectedRow();
+        
+        try {
+            showLimitDetail();
+        } catch (Exception ex) {
+            Logger.getLogger(LimitAddOn.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
         try {
             showLimitHeader();
-            //comboFilter();
         } catch (Exception ex) {
             Logger.getLogger(LimitAddOn.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -1336,6 +1390,18 @@ public final class LimitAddOn extends javax.swing.JFrame {
     private void txtParamSaldoAwalKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtParamSaldoAwalKeyReleased
         // TODO add your handling code here:
     }//GEN-LAST:event_txtParamSaldoAwalKeyReleased
+
+    private void tblLimitHeaderKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tblLimitHeaderKeyPressed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_tblLimitHeaderKeyPressed
+
+    private void tblLimitHeaderMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblLimitHeaderMouseClicked
+        try {
+            showLimitDetail();
+        } catch (Exception ex) {
+            Logger.getLogger(LimitAddOn.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_tblLimitHeaderMouseClicked
 
     /**
      * @param args the command line arguments
