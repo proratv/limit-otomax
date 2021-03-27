@@ -307,8 +307,11 @@ public final class LimitAddOn extends javax.swing.JFrame {
 
         try {
             String query;
-            query = "select * from limit_dt where kode_limit = " + kodeLimit + " order by kode_limit desc";
-            Connection conn = (Connection) DatabaseConnection.getConnection(dbName2);
+            query = "select aLimit.kode_limit, aLimit.reseller, reseller.nama, aLimit.transaksi_dalam_masa, \n" +
+                    "aLimit.transaksi_sedang_proses, aLimit.transaksi_total, aLimit.status\n" +
+                    "from EmmaDB.dbo.limit_dt aLimit join reseller on aLimit.reseller = reseller.kode\n" +
+                    "where aLimit.kode_limit = "+ kodeLimit +" order by kode_limit desc";
+            Connection conn = (Connection) DatabaseConnection.getConnection(dbName1);
             Statement stm = conn.createStatement();
             ResultSet res = stm.executeQuery(query);
             DefaultTableModel model = (DefaultTableModel) tblLimitDetail.getModel();
@@ -323,7 +326,7 @@ public final class LimitAddOn extends javax.swing.JFrame {
                 } else {
                     statusColumn = "Non Aktif";
                 }
-                model.addRow(new Object[]{res.getString("kode_limit"), res.getString("reseller"), res.getString("transaksi_sedang_proses"), res.getString("transaksi_dalam_masa"), res.getString("transaksi_total"), statusColumn});
+                model.addRow(new Object[]{res.getString("kode_limit"), res.getString("reseller"), res.getString("nama"), res.getString("transaksi_sedang_proses"), res.getString("transaksi_dalam_masa"), res.getString("transaksi_total"), statusColumn});
             }
         } catch (SQLException e) {
             System.out.println("Error Message: " + e.getMessage());
@@ -353,15 +356,16 @@ public final class LimitAddOn extends javax.swing.JFrame {
         columnModelHeader.getColumn(8).setPreferredWidth(70);
 
         TableColumnModel columnModelDetail = tblLimitDetail.getColumnModel();
-        columnModelDetail.getColumn(1).setPreferredWidth(150);
-        columnModelDetail.getColumn(2).setPreferredWidth(50);
+        columnModelDetail.getColumn(1).setPreferredWidth(50);
+        columnModelDetail.getColumn(2).setPreferredWidth(150);
         columnModelDetail.getColumn(3).setPreferredWidth(50);
         columnModelDetail.getColumn(4).setPreferredWidth(50);
+        columnModelDetail.getColumn(5).setPreferredWidth(50);
 
         columnModelDetail.getColumn(0).setMinWidth(0);
         columnModelDetail.getColumn(0).setMaxWidth(0);
-        columnModelDetail.getColumn(5).setMinWidth(0);
-        columnModelDetail.getColumn(5).setMaxWidth(0);
+        columnModelDetail.getColumn(6).setMinWidth(0);
+        columnModelDetail.getColumn(6).setMaxWidth(0);
     } // done
 
     private void getEditData() throws Exception {
@@ -456,6 +460,16 @@ public final class LimitAddOn extends javax.swing.JFrame {
         tr = new TableRowSorter<>(table);
         tblLimitHeader.setRowSorter(tr);
         tr.setRowFilter(RowFilter.regexFilter("(?i)" + search, 1, 2, 3, 4, 5, 6, 7, 8, 9));
+    } // please check for filtering limit header table
+    
+    private void searchTableDetailFilter() {
+        DefaultTableModel table = (DefaultTableModel) tblLimitDetail.getModel();
+        String search;
+        search = txtSearchFilterDetail.getText();
+        TableRowSorter<DefaultTableModel> tr;
+        tr = new TableRowSorter<>(table);
+        tblLimitDetail.setRowSorter(tr);
+        tr.setRowFilter(RowFilter.regexFilter("(?i)" + search, 1, 2, 3, 4));
     } // please check for filtering limit header table
 
     private void saveData() {
@@ -629,14 +643,14 @@ public final class LimitAddOn extends javax.swing.JFrame {
 
             },
             new String [] {
-                "Kode Limit", "Reseller", "Transaksi Sedang Proses", "Transaksi Dalam Masa", "Total Transaksi", "Status"
+                "Kode Limit", "Kode Reseller", "Reseller", "Transaksi Sedang Proses", "Transaksi Dalam Masa", "Total Transaksi", "Status"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.String.class
+                java.lang.String.class, java.lang.Object.class, java.lang.String.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.String.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false
+                false, false, false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -658,6 +672,7 @@ public final class LimitAddOn extends javax.swing.JFrame {
             tblLimitDetail.getColumnModel().getColumn(3).setResizable(false);
             tblLimitDetail.getColumnModel().getColumn(4).setResizable(false);
             tblLimitDetail.getColumnModel().getColumn(5).setResizable(false);
+            tblLimitDetail.getColumnModel().getColumn(6).setResizable(false);
         }
 
         txtSearchFilterHeader.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
@@ -1294,6 +1309,7 @@ public final class LimitAddOn extends javax.swing.JFrame {
     private void btnRefreshDataActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRefreshDataActionPerformed
         // TODO add your handling code here:
         txtSearchFilterHeader.setText(null);
+        txtSearchFilterDetail.setText(null);
         searchTableHeaderFilter();
         defaultSelectedRow();
 
@@ -1324,6 +1340,13 @@ public final class LimitAddOn extends javax.swing.JFrame {
 
     private void txtSearchFilterDetailKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtSearchFilterDetailKeyReleased
         // TODO add your handling code here:
+        searchTableDetailFilter();
+        defaultSelectedRow();
+        try {
+            showLimitDetail();
+        } catch (Exception ex) {
+            Logger.getLogger(LimitAddOn.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }//GEN-LAST:event_txtSearchFilterDetailKeyReleased
 
     private void txtParamResellerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtParamResellerActionPerformed
