@@ -293,22 +293,21 @@ public final class LimitAddOn extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "Error Message: " + e.getMessage());
         }
     } // done
-    
-    
+
     private void showLimitDetail() throws Exception {
         DefaultTableModel modelHeader = (DefaultTableModel) tblLimitHeader.getModel();
         int SelectedRowIndex = tblLimitHeader.getSelectedRow();
-        
+
         String kodeLimit;
-        if(SelectedRowIndex == -1){
+        if (SelectedRowIndex == -1) {
             kodeLimit = "-1";
         } else {
-           kodeLimit = (String) modelHeader.getValueAt(SelectedRowIndex, 0);
+            kodeLimit = (String) modelHeader.getValueAt(SelectedRowIndex, 0);
         }
-        
+
         try {
             String query;
-            query = "select * from limit_dt where kode_limit = " + kodeLimit +" order by kode_limit desc";
+            query = "select * from limit_dt where kode_limit = " + kodeLimit + " order by kode_limit desc";
             Connection conn = (Connection) DatabaseConnection.getConnection(dbName2);
             Statement stm = conn.createStatement();
             ResultSet res = stm.executeQuery(query);
@@ -317,7 +316,7 @@ public final class LimitAddOn extends javax.swing.JFrame {
 
             while (res.next()) {
                 SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
-              
+
                 isStatusColumn = res.getBoolean("status");
                 if (isStatusColumn == true) {
                     statusColumn = "Aktif";
@@ -498,6 +497,8 @@ public final class LimitAddOn extends javax.swing.JFrame {
             pst.setDate(10, java.sql.Date.valueOf(java.time.LocalDate.now()));
             pst.setDate(11, java.sql.Date.valueOf(java.time.LocalDate.now()));
             pst.executeUpdate();
+            showLimitHeader();
+            defaultSetVariable();
             JOptionPane.showMessageDialog(null, "Data telah berhasil di simpan");
         } catch (HeadlessException | SQLException e) {
             JOptionPane.showMessageDialog(this, e.getMessage());
@@ -538,6 +539,8 @@ public final class LimitAddOn extends javax.swing.JFrame {
             pst.setDate(7, java.sql.Date.valueOf(java.time.LocalDate.now()));
             pst.setString(8, kodeLimitColumn);
             pst.executeUpdate();
+            showLimitHeader();
+            defaultSetVariable();
             JOptionPane.showMessageDialog(null, "Data telah berhasil di ubah");
         } catch (HeadlessException | SQLException e) {
             JOptionPane.showMessageDialog(this, e.getMessage());
@@ -1245,17 +1248,6 @@ public final class LimitAddOn extends javax.swing.JFrame {
             }
         }
 
-        try {
-            showLimitHeader();
-        } catch (Exception ex) {
-            Logger.getLogger(LimitAddOn.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        try {
-            defaultSetVariable();
-        } catch (Exception ex) {
-            Logger.getLogger(LimitAddOn.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
         flagUpdateSave = "";
     }//GEN-LAST:event_btnUpdateSaveActionPerformed
 
@@ -1305,13 +1297,13 @@ public final class LimitAddOn extends javax.swing.JFrame {
         txtSearchFilterHeader.setText(null);
         searchTableHeaderFilter();
         defaultSelectedRow();
-        
+
         try {
             showLimitDetail();
         } catch (Exception ex) {
             Logger.getLogger(LimitAddOn.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
         try {
             showLimitHeader();
         } catch (Exception ex) {
