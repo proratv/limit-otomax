@@ -41,7 +41,8 @@ import javax.swing.table.TableRowSorter;
 public final class LimitAddOn extends javax.swing.JFrame {
 
     int maxKodeLimit;
-    int totalRow;
+    int totalIndex;
+    String kodeLimitColumn;
     String grupColumn;
     String resellerColumn;
     String produkColumn;
@@ -58,6 +59,9 @@ public final class LimitAddOn extends javax.swing.JFrame {
     String flagUpdateSave;
     int selectedRow;
 
+    String dbName1 = "Otomax";
+    String dbName2 = "EmmaDB";
+
     /**
      * Creates new form NewJFrame
      *
@@ -67,108 +71,83 @@ public final class LimitAddOn extends javax.swing.JFrame {
         initComponents();
         getContextMenu();
         getImageIcon();
-        countLimitData();
         defaultSetVariable();
+        configComponent();
         configLimitTable();
-        showLimitData();
-        comboFilter();
+        showLimitHeader();
+        //comboFilter();
         datePick();
-        AutoCompleteDecorator.decorate(cmbByGroup);
-        AutoCompleteDecorator.decorate(cmbByReseller);
+        AutoCompleteDecorator.decorate(cmbGrup);
         AutoCompleteDecorator.decorate(cmbProduk);
-        byGroupList();
-        byResellerList();
+        byGrupList();
         byProdukList();
         captureSelectedRow();
     }
 
     private void getContextMenu() {
         DefaultContextMenu DefaultContextMenu = new DefaultContextMenu();
-        DefaultContextMenu.addDefaultContextMenu(txtSearchFilter);
-    }
+        DefaultContextMenu.addDefaultContextMenu(txtSearchFilterHeader);
+    } // done
 
     private void getImageIcon() {
         String iconPath = "images\\limit_dashboard.png";
         ImageIcon img = new ImageIcon(iconPath);
         setIconImage(img.getImage());
-    }
+    } // done
 
-    private void byGroupList() throws Exception {
+    private void byGrupList() throws Exception {
         try {
             String query;
-            query = "select distinct kode, nama from level";  //query notice
-            Connection conn = (Connection) DatabaseConnection.getConnection();
+            query = "select distinct kode, nama from level";
+            Connection conn = (Connection) DatabaseConnection.getConnection(dbName1);
             Statement stm = conn.createStatement();
             ResultSet res = stm.executeQuery(query);
 
             while (res.next()) {
-                //grupColumn = res.getString("kode");
-                cmbByGroup.addItem(res.getString("kode").trim());
-                //cmbByGroup.addItem(res.getString("nama").trim());
+                cmbGrup.addItem(res.getString("kode").trim());
             }
         } catch (ClassNotFoundException | SQLException e) {
             System.out.println(e);
             JOptionPane.showMessageDialog(null, "Error Message: " + e.getMessage());
         }
-    }
-
-    private void byResellerList() throws Exception {
-        try {
-            String query;
-            query = "select distinct kode, nama from reseller"; //query notice
-            Connection conn = (Connection) DatabaseConnection.getConnection();
-            Statement stm = conn.createStatement();
-            ResultSet res = stm.executeQuery(query);
-
-            while (res.next()) {
-                cmbByReseller.addItem(res.getString("kode").trim());
-                //cmbByReseller.addItem(res.getString("nama").trim());
-            }
-        } catch (ClassNotFoundException | SQLException e) {
-            System.out.println(e);
-            JOptionPane.showMessageDialog(null, "Error Message: " + e.getMessage());
-        }
-    }
+    } // done
 
     private void byProdukList() throws Exception {
         try {
             String query;
-            query = "select distinct kode, nama from produk"; //query notice
-            Connection conn = (Connection) DatabaseConnection.getConnection();
+            query = "select distinct kode, nama from produk";
+            Connection conn = (Connection) DatabaseConnection.getConnection(dbName1);
             Statement stm = conn.createStatement();
             ResultSet res = stm.executeQuery(query);
 
             while (res.next()) {
                 cmbProduk.addItem(res.getString("kode").trim());
-                //cmbProduk.addItem(res.getString("nama").trim());
             }
         } catch (ClassNotFoundException | SQLException e) {
             System.out.println(e);
             JOptionPane.showMessageDialog(null, "Error Message: " + e.getMessage());
         }
-    }
+    } // done
 
     private void defaultSelectedRow() {
         selectedRow = -1;
 
         if (selectedRow == -1) {
             btnEditData.setEnabled(false);
-            btnEditData.setEnabled(false);
             btnEditData.setToolTipText("Tidak Ada Data yang Bisa di Edit");
         } else {
             btnEditData.setEnabled(true);
             btnEditData.setToolTipText("Edit Data Limit Transaksi");
         }
-    }
+    } // done
 
     private void captureSelectedRow() {
-        ListSelectionModel model = tblEmmaLimitTransaction.getSelectionModel();
+        ListSelectionModel model = tblLimitHeader.getSelectionModel();
         model.addListSelectionListener((ListSelectionEvent e) -> {
             if (!model.isSelectionEmpty()) {
                 selectedRow = model.getMinSelectionIndex();
 
-                System.out.println(selectedRow);
-
+                //System.out.println(selectedRow);
                 if (selectedRow == -1) {
                     btnEditData.setEnabled(false);
                     btnEditData.setToolTipText("Tidak Ada Data yang Bisa di Edit");
@@ -178,16 +157,17 @@ public final class LimitAddOn extends javax.swing.JFrame {
                 }
             }
         });
-    }
+    } // done
 
     private void defaultSetVariable() throws Exception {
-        cmbByGroup.setSelectedItem("");
-        cmbByReseller.setSelectedItem("");
+        cmbGrup.setSelectedItem("");
         cmbProduk.setSelectedItem("");
         cmbTransactionPeriod.setSelectedItem("");
         txtTransactionLimit.setText("0");
         txaErrorMessage.setText("");
         maxKodeLimit = 0;
+        totalIndex = 0;
+        kodeLimitColumn = null;
         grupColumn = null;
         resellerColumn = null;
         produkColumn = null;
@@ -206,24 +186,14 @@ public final class LimitAddOn extends javax.swing.JFrame {
         selectedRow = -1;
         cmbStatus.setSelectedItem("Aktif");
         cmbStatus.setEnabled(false);
-        cmbStatusFilter.setSelectedItem("Semua Status");
-        cmbSearchByFilter.setSelectedItem("Semua Data");
-        txtSearchFilter.setText("");
+        txtSearchFilterHeader.setText("");
 
         configComponent();
-    }
+    } // done
 
     private void configComponent() throws Exception {
-        txtSearchFilter.requestFocus();
-        scpErrorMessage.setVisible(false);
-        lblSearchByFilter.setVisible(false);
-        cmbSearchByFilter.setVisible(false);
-        lblErrorMessage.setVisible(false);
-        btnGenerate.setVisible(false);
-        lblByGroup.setVisible(false);
-        cmbByGroup.setVisible(false);
-        cmbByGroup.setEnabled(true);
-        cmbByReseller.setEnabled(true);
+        txtSearchFilterHeader.requestFocus();
+        cmbGrup.setEnabled(true);
         cmbProduk.setEnabled(true);
         cmbTransactionPeriod.setEnabled(true);
         txtTransactionLimit.setEnabled(true);
@@ -233,18 +203,17 @@ public final class LimitAddOn extends javax.swing.JFrame {
         TitledBorder title = BorderFactory.createTitledBorder("Tambah Daftar Limit");
         pnlAddLimitList.setBorder(title);
 
-        ListSelectionModel model = tblEmmaLimitTransaction.getSelectionModel();
+        ListSelectionModel model = tblLimitDetail.getSelectionModel();
         selectedRow = model.getMinSelectionIndex();
 
-        countLimitData();
-        if (totalRow == 0 || selectedRow == -1) {
+        if (selectedRow == -1) {
             btnEditData.setEnabled(false);
             btnEditData.setToolTipText("Tidak Ada Data yang Bisa di Edit");
         } else {
             btnEditData.setEnabled(true);
             btnEditData.setToolTipText("Edit Data Limit Transaksi");
         }
-    }
+    } // done
 
     private void datePick() {
 
@@ -268,56 +237,38 @@ public final class LimitAddOn extends javax.swing.JFrame {
         JButton datePickerButtonEnd = dtpEndDateEvent.getComponentToggleCalendarButton();
         datePickerButtonEnd.setIcon(icon);
         datePickerButtonEnd.setText("");
-    }
-
-    private void countLimitData() throws Exception {
-        try {
-            String query;
-            query = "select count(0) as total_row from emma_limit_transaksi";
-            Connection conn = (Connection) DatabaseConnection.getConnection();
-            Statement stm = conn.createStatement();
-            ResultSet res = stm.executeQuery(query);
-
-            while (res.next()) {
-                totalRow = res.getInt("total_row");
-            }
-
-        } catch (SQLException e) {
-            System.out.println("Error Message: " + e.getMessage());
-            JOptionPane.showMessageDialog(null, "Error Message: " + e.getMessage());
-        }
-    }
+    } // done
 
     private void countIndexData() throws Exception {
-        grupColumn = cmbByGroup.getSelectedItem().toString();
-        resellerColumn = cmbByReseller.getSelectedItem().toString();
+        grupColumn = cmbGrup.getSelectedItem().toString();
         produkColumn = cmbProduk.getSelectedItem().toString();
 
         try {
             String query;
-            query = "select count(0) as total_row from emma_limit_transaksi where grup = '" + grupColumn + "' and reseller = '" + resellerColumn + "' and produk = '" + produkColumn + "'";
-            Connection conn = (Connection) DatabaseConnection.getConnection();
+            query = "select count(0) as total_index from limit_hd where grup = '" + grupColumn + "' and produk = '" + produkColumn + "'";
+            Connection conn = (Connection) DatabaseConnection.getConnection(dbName2);
             Statement stm = conn.createStatement();
             ResultSet res = stm.executeQuery(query);
 
             while (res.next()) {
-                totalRow = res.getInt("total_row");
+                totalIndex = res.getInt("total_index");
+                System.out.println(totalIndex);
             }
 
         } catch (SQLException e) {
             System.out.println("Error Message: " + e.getMessage());
             JOptionPane.showMessageDialog(null, "Error Message: " + e.getMessage());
         }
-    }
+    } /// done
 
-    private void showLimitData() throws Exception {
+    private void showLimitHeader() throws Exception {
         try {
             String query;
-            query = "select * from emma_limit_transaksi order by kode_limit desc";
-            Connection conn = (Connection) DatabaseConnection.getConnection();
+            query = "select * from limit_hd order by kode_limit desc";
+            Connection conn = (Connection) DatabaseConnection.getConnection(dbName2);
             Statement stm = conn.createStatement();
             ResultSet res = stm.executeQuery(query);
-            DefaultTableModel model = (DefaultTableModel) tblEmmaLimitTransaction.getModel();
+            DefaultTableModel model = (DefaultTableModel) tblLimitHeader.getModel();
             model.setRowCount(0);
 
             while (res.next()) {
@@ -335,51 +286,60 @@ public final class LimitAddOn extends javax.swing.JFrame {
                 } else {
                     statusColumn = "Non Aktif";
                 }
-                model.addRow(new Object[]{res.getString("kode_limit"), res.getString("grup"), res.getString("reseller"), res.getString("produk"), res.getString("jumlah_limit"), res.getString("masa_limit"), res.getString("transaksi_dalam_masa"), res.getString("transaksi_total"), statusColumn, startDate, endDate});
+                model.addRow(new Object[]{res.getString("kode_limit"), res.getString("grup"), res.getString("produk"), res.getString("masa_limit"), res.getString("jumlah_limit"), statusColumn, res.getString("pesan_gagal"), startDate, endDate});
             }
         } catch (SQLException e) {
             System.out.println("Error Message: " + e.getMessage());
             JOptionPane.showMessageDialog(null, "Error Message: " + e.getMessage());
         }
-    }
+    } // done
 
     private void configLimitTable() throws Exception {
 
-        TableCellRenderer rendererFromHeader = tblEmmaLimitTransaction.getTableHeader().getDefaultRenderer();
+        TableCellRenderer rendererFromHeader = tblLimitHeader.getTableHeader().getDefaultRenderer();
         JLabel headerLabel = (JLabel) rendererFromHeader;
         headerLabel.setHorizontalAlignment(JLabel.CENTER);
 
-        TableColumnModel columnModel = tblEmmaLimitTransaction.getColumnModel();
-        columnModel.getColumn(2).setPreferredWidth(75);
-        columnModel.getColumn(3).setPreferredWidth(125);
-        columnModel.getColumn(4).setPreferredWidth(75);
-        columnModel.getColumn(5).setPreferredWidth(150);
-        columnModel.getColumn(6).setPreferredWidth(80);
-        columnModel.getColumn(7).setPreferredWidth(75);
-        columnModel.getColumn(8).setPreferredWidth(100);
-        columnModel.getColumn(9).setPreferredWidth(125);
-        columnModel.getColumn(10).setPreferredWidth(125);
+        TableCellRenderer rendererFromDetail = tblLimitDetail.getTableHeader().getDefaultRenderer();
+        JLabel detailLabel = (JLabel) rendererFromDetail;
+        detailLabel.setHorizontalAlignment(JLabel.CENTER);
 
-        columnModel.getColumn(0).setMinWidth(0);
-        columnModel.getColumn(0).setMaxWidth(0);
-        columnModel.getColumn(1).setMinWidth(0);
-        columnModel.getColumn(1).setMaxWidth(0);
+        TableColumnModel columnModelHeader = tblLimitHeader.getColumnModel();
+        columnModelHeader.getColumn(0).setPreferredWidth(40);
+        columnModelHeader.getColumn(1).setPreferredWidth(50);
+        columnModelHeader.getColumn(2).setPreferredWidth(50);
+        columnModelHeader.getColumn(3).setPreferredWidth(40);
+        columnModelHeader.getColumn(4).setPreferredWidth(75);
+        columnModelHeader.getColumn(5).setPreferredWidth(50);
+        columnModelHeader.getColumn(6).setPreferredWidth(200);
+        columnModelHeader.getColumn(7).setPreferredWidth(70);
+        columnModelHeader.getColumn(8).setPreferredWidth(70);
 
-    }
+        TableColumnModel columnModelDetail = tblLimitDetail.getColumnModel();
+        columnModelDetail.getColumn(1).setPreferredWidth(150);
+        columnModelDetail.getColumn(2).setPreferredWidth(50);
+        columnModelDetail.getColumn(3).setPreferredWidth(50);
+        columnModelDetail.getColumn(4).setPreferredWidth(50);
+
+        columnModelDetail.getColumn(0).setMinWidth(0);
+        columnModelDetail.getColumn(0).setMaxWidth(0);
+        columnModelDetail.getColumn(5).setMinWidth(0);
+        columnModelDetail.getColumn(5).setMaxWidth(0);
+    } // done
 
     private void getEditData() throws Exception {
-        DefaultTableModel model = (DefaultTableModel) tblEmmaLimitTransaction.getModel();
-        int SelectedRowIndex = tblEmmaLimitTransaction.getSelectedRow();
+        DefaultTableModel model = (DefaultTableModel) tblLimitHeader.getModel();
+        int SelectedRowIndex = tblLimitHeader.getSelectedRow();
 
         try {
             String query;
-            query = "select count(0) as total_row from emma_limit_transaksi where kode_limit = " + model.getValueAt(SelectedRowIndex, 0);
-            Connection conn = (Connection) DatabaseConnection.getConnection();
+            query = "select count(0) as total_row from limit_hd where kode_limit = " + model.getValueAt(SelectedRowIndex, 0);
+            Connection conn = (Connection) DatabaseConnection.getConnection(dbName2);
             Statement stm = conn.createStatement();
             ResultSet res = stm.executeQuery(query);
 
             while (res.next()) {
-                totalRow = res.getInt("total_row");
+                totalIndex = res.getInt("total_row");
             }
 
         } catch (SQLException e) {
@@ -387,21 +347,22 @@ public final class LimitAddOn extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "Error Message: " + e.getMessage());
         }
 
-        cmbByGroup.setSelectedItem(model.getValueAt(SelectedRowIndex, 1));
-        cmbByReseller.setSelectedItem(model.getValueAt(SelectedRowIndex, 2));
-        cmbProduk.setSelectedItem(model.getValueAt(SelectedRowIndex, 3));
+        kodeLimitColumn = (String) (model.getValueAt(SelectedRowIndex, 0));
+        cmbGrup.setSelectedItem(model.getValueAt(SelectedRowIndex, 1));
+        cmbProduk.setSelectedItem(model.getValueAt(SelectedRowIndex, 2));
+        cmbTransactionPeriod.setSelectedItem(model.getValueAt(SelectedRowIndex, 3));
         txtTransactionLimit.setText(model.getValueAt(SelectedRowIndex, 4).toString());
-        cmbTransactionPeriod.setSelectedItem(model.getValueAt(SelectedRowIndex, 5));
-        cmbStatus.setSelectedItem(model.getValueAt(SelectedRowIndex, 8));
-        dtpStartDateEvent.setText(model.getValueAt(SelectedRowIndex, 9).toString());
-        dtpEndDateEvent.setText(model.getValueAt(SelectedRowIndex, 10).toString());
-    }
+        cmbStatus.setSelectedItem(model.getValueAt(SelectedRowIndex, 5));
+        dtpStartDateEvent.setText(model.getValueAt(SelectedRowIndex, 7).toString());
+        dtpEndDateEvent.setText(model.getValueAt(SelectedRowIndex, 8).toString());
+        txaErrorMessage.append((String) model.getValueAt(SelectedRowIndex, 6));
+    } // done
 
     private void getMaxKodeLimit() throws Exception {
         try {
             String query;
-            query = "select max(kode_limit) as max_kode_limit from emma_limit_transaksi";
-            Connection conn = (Connection) DatabaseConnection.getConnection();
+            query = "select max(kode_limit) as max_kode_limit from limit_hd";
+            Connection conn = (Connection) DatabaseConnection.getConnection(dbName2);
             Statement stm = conn.createStatement();
             ResultSet res = stm.executeQuery(query);
 
@@ -413,40 +374,16 @@ public final class LimitAddOn extends javax.swing.JFrame {
             System.out.println("Error Message: " + e.getMessage());
             JOptionPane.showMessageDialog(null, "Error Message: " + e.getMessage());
         }
-    }
+    } // done
 
     private void comboFilter() {
-        if (cmbStatusFilter.getSelectedItem() == "Semua Status") {
-            statusColumn = "status";
-        } else if (cmbStatusFilter.getSelectedItem() == "Aktif") {
-            statusColumn = "1";
-        } else if (cmbStatusFilter.getSelectedItem() == "Non Aktif") {
-            statusColumn = "0";
-        } else {
-            statusColumn = "";
-        }
-
-        if (cmbSearchByFilter.getSelectedItem() == "Semua Data") {
-            grupColumn = "grup";
-            resellerColumn = "reseller";
-        } else if (cmbSearchByFilter.getSelectedItem() == "Grup") {
-            grupColumn = "grup";
-            resellerColumn = "null";
-        } else if (cmbSearchByFilter.getSelectedItem() == "Reseller") {
-            grupColumn = "null";
-            resellerColumn = "reseller";
-        } else {
-            grupColumn = "null";
-            resellerColumn = "null";
-        }
-
         try {
             String query;
-            query = "select * from emma_limit_transaksi where status = " + statusColumn + " and grup = CASE WHEN " + grupColumn + " = grup THEN grup ELSE '' END and reseller = CASE WHEN " + resellerColumn + " = reseller THEN reseller ELSE '' END order by kode_limit desc";
-            Connection conn = (Connection) DatabaseConnection.getConnection();
+            query = "select * from limit_hd where grup = CASE WHEN " + grupColumn + " = grup THEN grup ELSE '' END order by kode_limit desc";
+            Connection conn = (Connection) DatabaseConnection.getConnection(dbName2);
             Statement stm = conn.createStatement();
             ResultSet res = stm.executeQuery(query);
-            DefaultTableModel model = (DefaultTableModel) tblEmmaLimitTransaction.getModel();
+            DefaultTableModel model = (DefaultTableModel) tblLimitHeader.getModel();
             model.setRowCount(0);
 
             while (res.next()) {
@@ -472,41 +409,33 @@ public final class LimitAddOn extends javax.swing.JFrame {
         } catch (Exception ex) {
             Logger.getLogger(LimitAddOn.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
+    } // please check for filtering limit header table
 
-    private void searchTableFilter() {
-        DefaultTableModel table = (DefaultTableModel) tblEmmaLimitTransaction.getModel();
+    private void searchTableHeaderFilter() {
+        DefaultTableModel table = (DefaultTableModel) tblLimitHeader.getModel();
         String search;
-        search = txtSearchFilter.getText();
+        search = txtSearchFilterHeader.getText();
         TableRowSorter<DefaultTableModel> tr;
         tr = new TableRowSorter<>(table);
-        tblEmmaLimitTransaction.setRowSorter(tr);
-        tr.setRowFilter(RowFilter.regexFilter("(?i)" + search, 2, 3, 4, 5, 6, 7, 8, 9, 10));
-    }
-
-    private void errorLimitMessage() {
-        errorMessageColumn = "Reseller " + cmbByReseller.getSelectedItem().toString() + " dengan produk " + cmbProduk.getSelectedItem().toString() + " telah mencapai limit " + cmbTransactionPeriod.getSelectedItem().toString() + " sebanyak " + txtTransactionLimit.getText();
-        txaErrorMessage.setText(errorMessageColumn);
-    }
+        tblLimitHeader.setRowSorter(tr);
+        tr.setRowFilter(RowFilter.regexFilter("(?i)" + search, 1, 2, 3, 4, 5, 6, 7, 8, 9));
+    } // please check for filtering limit header table
 
     private void saveData() {
         DefaultTableModel model;
-        model = (DefaultTableModel) tblEmmaLimitTransaction.getModel();
+        model = (DefaultTableModel) tblLimitDetail.getModel();
         try {
             String query;
-            query = "INSERT INTO emma_limit_transaksi (kode_limit, grup, reseller, produk, masa_limit, jumlah_limit, transaksi_dalam_masa, transaksi_total, status, pesan_gagal, tgl_mulai_event, tgl_akhir_event, date_create, date_update) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            Connection conn = (Connection) DatabaseConnection.getConnection();
+            query = "INSERT INTO limit_hd (kode_limit, grup, produk, masa_limit, jumlah_limit, status, pesan_gagal, tgl_mulai_event, tgl_akhir_event, date_create, date_update) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            Connection conn = (Connection) DatabaseConnection.getConnection(dbName2);
             PreparedStatement pst = conn.prepareStatement(query);
             getMaxKodeLimit();
             maxKodeLimit += 1;
-            grupColumn = cmbByGroup.getSelectedItem().toString();
-            resellerColumn = cmbByReseller.getSelectedItem().toString();
+            grupColumn = cmbGrup.getSelectedItem().toString();
             produkColumn = cmbProduk.getSelectedItem().toString();
             masaLimitColumn = cmbTransactionPeriod.getSelectedItem().toString();
             jumlahLimitColumn = Integer.parseInt(txtTransactionLimit.getText());
-            masaTransaksiColumn = 0;
-            totalTransaksiColumn = 0;
-            errorLimitMessage();
+            errorMessageColumn = txaErrorMessage.getText();
             startDate = dtpStartDateEvent.getText();
             endDate = dtpEndDateEvent.getText();
             isStatusColumn = true;
@@ -521,42 +450,37 @@ public final class LimitAddOn extends javax.swing.JFrame {
 
             pst.setInt(1, maxKodeLimit);
             pst.setString(2, grupColumn);
-            pst.setString(3, resellerColumn);
-            pst.setString(4, produkColumn);
-            pst.setString(5, masaLimitColumn);
-            pst.setInt(6, jumlahLimitColumn);
-            pst.setInt(7, masaTransaksiColumn);
-            pst.setInt(8, totalTransaksiColumn);
-            pst.setBoolean(9, isStatusColumn);
-            pst.setString(10, errorMessageColumn);
-            pst.setDate(11, startEventDate);
-            pst.setDate(12, endEventDate);
-            pst.setDate(13, java.sql.Date.valueOf(java.time.LocalDate.now()));
-            pst.setDate(14, java.sql.Date.valueOf(java.time.LocalDate.now()));
+            pst.setString(3, produkColumn);
+            pst.setString(4, masaLimitColumn);
+            pst.setInt(5, jumlahLimitColumn);
+            pst.setBoolean(6, isStatusColumn);
+            pst.setString(7, errorMessageColumn);
+            pst.setDate(8, startEventDate);
+            pst.setDate(9, endEventDate);
+            pst.setDate(10, java.sql.Date.valueOf(java.time.LocalDate.now()));
+            pst.setDate(11, java.sql.Date.valueOf(java.time.LocalDate.now()));
             pst.executeUpdate();
             JOptionPane.showMessageDialog(null, "Data telah berhasil di simpan");
-            showLimitData();
-            defaultSetVariable();
         } catch (HeadlessException | SQLException e) {
             JOptionPane.showMessageDialog(this, e.getMessage());
         } catch (Exception ex) {
             Logger.getLogger(LimitAddOn.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
+    } // done
 
     private void updateData() throws Exception {
         try {
             String query;
-            query = "update emma_limit_transaksi set masa_limit = ?, jumlah_limit = ?, status=?, tgl_mulai_event = ?, tgl_akhir_event = ?, date_update = ? where grup = ? and reseller = ? and produk = ?";
-            Connection conn = (Connection) DatabaseConnection.getConnection();
+            query = "update limit_hd set masa_limit = ?, jumlah_limit = ?, status=?, pesan_gagal=?, tgl_mulai_event = ?, tgl_akhir_event = ?, date_update = ? where kode_limit = ?";
+            Connection conn = (Connection) DatabaseConnection.getConnection(dbName2);
             PreparedStatement pst = conn.prepareStatement(query);
             masaLimitColumn = cmbTransactionPeriod.getSelectedItem().toString();
             jumlahLimitColumn = Integer.parseInt(txtTransactionLimit.getText());
             isStatusColumn = cmbStatus.getSelectedItem().toString() == "Aktif";
+            errorMessageColumn = txaErrorMessage.getText();
             startDate = dtpStartDateEvent.getText();
             endDate = dtpEndDateEvent.getText();
-            grupColumn = cmbByGroup.getSelectedItem().toString();
-            resellerColumn = cmbByReseller.getSelectedItem().toString();
+            grupColumn = cmbGrup.getSelectedItem().toString();
             produkColumn = cmbProduk.getSelectedItem().toString();
 
             SimpleDateFormat dateFormatter = new SimpleDateFormat("dd-MMMMM-yyyy");
@@ -570,16 +494,13 @@ public final class LimitAddOn extends javax.swing.JFrame {
             pst.setString(1, masaLimitColumn);
             pst.setInt(2, jumlahLimitColumn);
             pst.setBoolean(3, isStatusColumn);
-            pst.setDate(4, startEventDate);
-            pst.setDate(5, endEventDate);
-            pst.setDate(6, java.sql.Date.valueOf(java.time.LocalDate.now()));
-            pst.setString(7, grupColumn);
-            pst.setString(8, resellerColumn);
-            pst.setString(9, produkColumn);
+            pst.setString(4, errorMessageColumn);
+            pst.setDate(5, startEventDate);
+            pst.setDate(6, endEventDate);
+            pst.setDate(7, java.sql.Date.valueOf(java.time.LocalDate.now()));
+            pst.setString(8, kodeLimitColumn);
             pst.executeUpdate();
             JOptionPane.showMessageDialog(null, "Data telah berhasil di ubah");
-            showLimitData();
-            defaultSetVariable();
         } catch (HeadlessException | SQLException e) {
             JOptionPane.showMessageDialog(this, e.getMessage());
         } catch (Exception ex) {
@@ -598,40 +519,52 @@ public final class LimitAddOn extends javax.swing.JFrame {
 
         tbdProgram = new javax.swing.JTabbedPane();
         pnlMonitoring = new javax.swing.JPanel();
-        lblStatusFilter = new javax.swing.JLabel();
-        lblSearchByFilter = new javax.swing.JLabel();
-        cmbStatusFilter = new javax.swing.JComboBox<>();
-        cmbSearchByFilter = new javax.swing.JComboBox<>();
         jScrollPane2 = new javax.swing.JScrollPane();
-        tblEmmaLimitTransaction = new javax.swing.JTable();
-        txtSearchFilter = new javax.swing.JTextField();
+        tblLimitDetail = new javax.swing.JTable();
+        txtSearchFilterHeader = new javax.swing.JTextField();
         btnEditData = new javax.swing.JButton();
         btnRefreshData = new javax.swing.JButton();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        tblLimitHeader = new javax.swing.JTable();
+        txtSearchFilterDetail = new javax.swing.JTextField();
+        lblHeader = new javax.swing.JLabel();
+        lblDetail = new javax.swing.JLabel();
         pnlAddLimitList = new javax.swing.JPanel();
-        lblByReseller = new javax.swing.JLabel();
         lblTransactionPeriod = new javax.swing.JLabel();
         lblProduk = new javax.swing.JLabel();
         lblErrorMessage = new javax.swing.JLabel();
         lblTransactionLimit = new javax.swing.JLabel();
-        cmbByGroup = new javax.swing.JComboBox<>();
-        cmbByReseller = new javax.swing.JComboBox<>();
+        cmbGrup = new javax.swing.JComboBox<>();
         cmbProduk = new javax.swing.JComboBox<>();
         cmbTransactionPeriod = new javax.swing.JComboBox<>();
-        lblCount = new javax.swing.JLabel();
         scpErrorMessage = new javax.swing.JScrollPane();
         txaErrorMessage = new javax.swing.JTextArea();
         btnClearData = new javax.swing.JButton();
-        btnGenerate = new javax.swing.JButton();
         btnUpdateSave = new javax.swing.JButton();
-        lblByGroup = new javax.swing.JLabel();
+        lblGrup = new javax.swing.JLabel();
         txtTransactionLimit = new javax.swing.JTextField();
-        jPanel3 = new javax.swing.JPanel();
-        lblStartEvent = new javax.swing.JLabel();
-        lblEndEvent = new javax.swing.JLabel();
-        dtpStartDateEvent = new com.github.lgooddatepicker.components.DatePicker();
-        dtpEndDateEvent = new com.github.lgooddatepicker.components.DatePicker();
         lblStatus = new javax.swing.JLabel();
         cmbStatus = new javax.swing.JComboBox<>();
+        dtpEndDateEvent = new com.github.lgooddatepicker.components.DatePicker();
+        lblEndEvent = new javax.swing.JLabel();
+        lblStartEvent = new javax.swing.JLabel();
+        dtpStartDateEvent = new com.github.lgooddatepicker.components.DatePicker();
+        txtParamReseller = new javax.swing.JTextField();
+        txtParamKodeTransaksi = new javax.swing.JTextField();
+        txtParamProduk = new javax.swing.JTextField();
+        txtParamTujuan = new javax.swing.JTextField();
+        txtParamHarga = new javax.swing.JTextField();
+        txtParamHargaBeli = new javax.swing.JTextField();
+        txtParamSaldoAwal = new javax.swing.JTextField();
+        jNullPanel = new javax.swing.JPanel();
+        lblLimitCount = new javax.swing.JLabel();
+        lblRequiredGrup = new javax.swing.JLabel();
+        lblRequiredProduk = new javax.swing.JLabel();
+        lblRequiredPeriod = new javax.swing.JLabel();
+        lblRequiredTransaction = new javax.swing.JLabel();
+        lblRequiredStartDate = new javax.swing.JLabel();
+        lblRequiredEndDate = new javax.swing.JLabel();
+        lblRequiredErrorMessage = new javax.swing.JLabel();
         lblTitleHeader = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -647,44 +580,22 @@ public final class LimitAddOn extends javax.swing.JFrame {
         pnlMonitoring.setBackground(new java.awt.Color(51, 204, 255));
         pnlMonitoring.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
-        lblStatusFilter.setText("Status");
-        lblStatusFilter.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
-
-        lblSearchByFilter.setText("Cari Berdasarkan");
-        lblSearchByFilter.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
-
-        cmbStatusFilter.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Semua Status", "Aktif", "Non Aktif" }));
-        cmbStatusFilter.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-        cmbStatusFilter.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                cmbStatusFilterActionPerformed(evt);
-            }
-        });
-
-        cmbSearchByFilter.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Semua Data", "Grup", "Reseller" }));
-        cmbSearchByFilter.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-        cmbSearchByFilter.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                cmbSearchByFilterActionPerformed(evt);
-            }
-        });
-
-        tblEmmaLimitTransaction.setBackground(new java.awt.Color(153, 255, 255));
-        tblEmmaLimitTransaction.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 2, true));
-        tblEmmaLimitTransaction.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
-        tblEmmaLimitTransaction.setModel(new javax.swing.table.DefaultTableModel(
+        tblLimitDetail.setBackground(new java.awt.Color(153, 255, 255));
+        tblLimitDetail.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 2, true));
+        tblLimitDetail.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        tblLimitDetail.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
             },
             new String [] {
-                "Kode Limit", "Group", "Reseller", "Produk", "Limit Trx", "Limit Masa Berlaku", "Transaksi", "Total Trx", "Status", "Tgl Mulai Event", "Tgl Akhir Event"
+                "Kode Limit", "Reseller", "Transaksi Sedang Proses", "Transaksi Dalam Masa", "Total Transaksi", "Status"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.String.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
+                java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.String.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, false, false, false, false, false
+                false, false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -695,34 +606,28 @@ public final class LimitAddOn extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
-        tblEmmaLimitTransaction.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        tblEmmaLimitTransaction.setGridColor(new java.awt.Color(51, 51, 255));
-        tblEmmaLimitTransaction.setRowHeight(20);
-        tblEmmaLimitTransaction.setShowGrid(true);
-        jScrollPane2.setViewportView(tblEmmaLimitTransaction);
-        if (tblEmmaLimitTransaction.getColumnModel().getColumnCount() > 0) {
-            tblEmmaLimitTransaction.getColumnModel().getColumn(0).setResizable(false);
-            tblEmmaLimitTransaction.getColumnModel().getColumn(1).setResizable(false);
-            tblEmmaLimitTransaction.getColumnModel().getColumn(2).setResizable(false);
-            tblEmmaLimitTransaction.getColumnModel().getColumn(3).setResizable(false);
-            tblEmmaLimitTransaction.getColumnModel().getColumn(4).setResizable(false);
-            tblEmmaLimitTransaction.getColumnModel().getColumn(5).setResizable(false);
-            tblEmmaLimitTransaction.getColumnModel().getColumn(6).setResizable(false);
-            tblEmmaLimitTransaction.getColumnModel().getColumn(7).setResizable(false);
-            tblEmmaLimitTransaction.getColumnModel().getColumn(8).setResizable(false);
-            tblEmmaLimitTransaction.getColumnModel().getColumn(9).setResizable(false);
-            tblEmmaLimitTransaction.getColumnModel().getColumn(10).setResizable(false);
+        tblLimitDetail.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        tblLimitDetail.setGridColor(new java.awt.Color(51, 51, 255));
+        tblLimitDetail.setRowHeight(20);
+        jScrollPane2.setViewportView(tblLimitDetail);
+        if (tblLimitDetail.getColumnModel().getColumnCount() > 0) {
+            tblLimitDetail.getColumnModel().getColumn(0).setResizable(false);
+            tblLimitDetail.getColumnModel().getColumn(1).setResizable(false);
+            tblLimitDetail.getColumnModel().getColumn(2).setResizable(false);
+            tblLimitDetail.getColumnModel().getColumn(3).setResizable(false);
+            tblLimitDetail.getColumnModel().getColumn(4).setResizable(false);
+            tblLimitDetail.getColumnModel().getColumn(5).setResizable(false);
         }
 
-        txtSearchFilter.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-        txtSearchFilter.addActionListener(new java.awt.event.ActionListener() {
+        txtSearchFilterHeader.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        txtSearchFilterHeader.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtSearchFilterActionPerformed(evt);
+                txtSearchFilterHeaderActionPerformed(evt);
             }
         });
-        txtSearchFilter.addKeyListener(new java.awt.event.KeyAdapter() {
+        txtSearchFilterHeader.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyReleased(java.awt.event.KeyEvent evt) {
-                txtSearchFilterKeyReleased(evt);
+                txtSearchFilterHeaderKeyReleased(evt);
             }
         });
 
@@ -746,6 +651,68 @@ public final class LimitAddOn extends javax.swing.JFrame {
             }
         });
 
+        tblLimitHeader.setBackground(new java.awt.Color(153, 255, 255));
+        tblLimitHeader.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 2, true));
+        tblLimitHeader.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        tblLimitHeader.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "Kode Limit", "Grup", "Produk", "Masa Limit", "Jumlah Limit", "Status", "Pesan Gagal", "Tgl Awal Trx", "Tgl Akhir Trx"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false, false, false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        tblLimitHeader.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        tblLimitHeader.setGridColor(new java.awt.Color(51, 51, 255));
+        tblLimitHeader.setRowHeight(20);
+        jScrollPane3.setViewportView(tblLimitHeader);
+        if (tblLimitHeader.getColumnModel().getColumnCount() > 0) {
+            tblLimitHeader.getColumnModel().getColumn(0).setResizable(false);
+            tblLimitHeader.getColumnModel().getColumn(1).setResizable(false);
+            tblLimitHeader.getColumnModel().getColumn(2).setResizable(false);
+            tblLimitHeader.getColumnModel().getColumn(3).setResizable(false);
+            tblLimitHeader.getColumnModel().getColumn(4).setResizable(false);
+            tblLimitHeader.getColumnModel().getColumn(5).setResizable(false);
+            tblLimitHeader.getColumnModel().getColumn(6).setResizable(false);
+            tblLimitHeader.getColumnModel().getColumn(7).setResizable(false);
+            tblLimitHeader.getColumnModel().getColumn(8).setResizable(false);
+        }
+
+        txtSearchFilterDetail.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        txtSearchFilterDetail.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtSearchFilterDetailActionPerformed(evt);
+            }
+        });
+        txtSearchFilterDetail.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtSearchFilterDetailKeyReleased(evt);
+            }
+        });
+
+        lblHeader.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblHeader.setText("Header");
+        lblHeader.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
+
+        lblDetail.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblDetail.setText("Detail");
+        lblDetail.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
+
         javax.swing.GroupLayout pnlMonitoringLayout = new javax.swing.GroupLayout(pnlMonitoring);
         pnlMonitoring.setLayout(pnlMonitoringLayout);
         pnlMonitoringLayout.setHorizontalGroup(
@@ -753,19 +720,17 @@ public final class LimitAddOn extends javax.swing.JFrame {
             .addGroup(pnlMonitoringLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(pnlMonitoringLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 773, Short.MAX_VALUE)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 960, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 960, Short.MAX_VALUE)
                     .addGroup(pnlMonitoringLayout.createSequentialGroup()
                         .addGroup(pnlMonitoringLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(pnlMonitoringLayout.createSequentialGroup()
-                                .addComponent(lblStatusFilter, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(cmbStatusFilter, javax.swing.GroupLayout.PREFERRED_SIZE, 109, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(85, 85, 85)
-                                .addComponent(lblSearchByFilter, javax.swing.GroupLayout.DEFAULT_SIZE, 129, Short.MAX_VALUE)
-                                .addGap(18, 18, 18)
-                                .addComponent(cmbSearchByFilter, 0, 92, Short.MAX_VALUE))
-                            .addComponent(txtSearchFilter, javax.swing.GroupLayout.PREFERRED_SIZE, 394, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(48, 48, 48)
+                            .addComponent(txtSearchFilterHeader, javax.swing.GroupLayout.PREFERRED_SIZE, 394, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lblDetail)
+                            .addComponent(txtSearchFilterDetail, javax.swing.GroupLayout.PREFERRED_SIZE, 394, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(pnlMonitoringLayout.createSequentialGroup()
+                        .addComponent(lblHeader)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(btnRefreshData, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnEditData, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -774,22 +739,23 @@ public final class LimitAddOn extends javax.swing.JFrame {
         pnlMonitoringLayout.setVerticalGroup(
             pnlMonitoringLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlMonitoringLayout.createSequentialGroup()
-                .addGap(28, 28, 28)
+                .addGap(27, 27, 27)
                 .addGroup(pnlMonitoringLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(pnlMonitoringLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(lblStatusFilter, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(cmbStatusFilter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(pnlMonitoringLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(lblSearchByFilter, javax.swing.GroupLayout.DEFAULT_SIZE, 23, Short.MAX_VALUE)
-                        .addComponent(cmbSearchByFilter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(btnEditData, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnRefreshData, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(lblHeader))
+                .addGap(6, 6, 6)
+                .addComponent(txtSearchFilterHeader, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 199, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(lblDetail)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(pnlMonitoringLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtSearchFilter)
-                    .addComponent(btnEditData)
-                    .addComponent(btnRefreshData))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addComponent(txtSearchFilterDetail, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 209, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(28, Short.MAX_VALUE))
         );
 
         tbdProgram.addTab("Monitoring", pnlMonitoring);
@@ -798,60 +764,40 @@ public final class LimitAddOn extends javax.swing.JFrame {
         pnlAddLimitList.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         pnlAddLimitList.setLayout(null);
 
-        lblByReseller.setText("By Reseller");
-        lblByReseller.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
-        pnlAddLimitList.add(lblByReseller);
-        lblByReseller.setBounds(70, 50, 96, 23);
-
         lblTransactionPeriod.setText("Masa Transaksi");
         lblTransactionPeriod.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         pnlAddLimitList.add(lblTransactionPeriod);
-        lblTransactionPeriod.setBounds(70, 110, 96, 23);
+        lblTransactionPeriod.setBounds(30, 90, 96, 30);
 
         lblProduk.setText("Produk");
         lblProduk.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         pnlAddLimitList.add(lblProduk);
-        lblProduk.setBounds(70, 80, 96, 23);
+        lblProduk.setBounds(30, 60, 96, 30);
 
         lblErrorMessage.setText("Pesan Gagal");
         lblErrorMessage.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         pnlAddLimitList.add(lblErrorMessage);
-        lblErrorMessage.setBounds(70, 230, 96, 23);
+        lblErrorMessage.setBounds(30, 240, 96, 23);
 
         lblTransactionLimit.setText("Limit Transaksi");
         lblTransactionLimit.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         pnlAddLimitList.add(lblTransactionLimit);
-        lblTransactionLimit.setBounds(70, 140, 96, 23);
+        lblTransactionLimit.setBounds(30, 120, 96, 30);
 
-        cmbByGroup.setEditable(true);
-        cmbByGroup.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-        cmbByGroup.addItemListener(new java.awt.event.ItemListener() {
+        cmbGrup.setEditable(true);
+        cmbGrup.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        cmbGrup.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                cmbByGroupItemStateChanged(evt);
+                cmbGrupItemStateChanged(evt);
             }
         });
-        cmbByGroup.addActionListener(new java.awt.event.ActionListener() {
+        cmbGrup.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                cmbByGroupActionPerformed(evt);
+                cmbGrupActionPerformed(evt);
             }
         });
-        pnlAddLimitList.add(cmbByGroup);
-        cmbByGroup.setBounds(170, 320, 200, 23);
-
-        cmbByReseller.setEditable(true);
-        cmbByReseller.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-        cmbByReseller.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                cmbByResellerItemStateChanged(evt);
-            }
-        });
-        cmbByReseller.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                cmbByResellerActionPerformed(evt);
-            }
-        });
-        pnlAddLimitList.add(cmbByReseller);
-        cmbByReseller.setBounds(170, 50, 200, 23);
+        pnlAddLimitList.add(cmbGrup);
+        cmbGrup.setBounds(130, 30, 200, 30);
 
         cmbProduk.setEditable(true);
         cmbProduk.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
@@ -861,7 +807,7 @@ public final class LimitAddOn extends javax.swing.JFrame {
             }
         });
         pnlAddLimitList.add(cmbProduk);
-        cmbProduk.setBounds(170, 80, 200, 23);
+        cmbProduk.setBounds(130, 60, 200, 30);
 
         cmbTransactionPeriod.setEditable(true);
         cmbTransactionPeriod.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "HARIAN", "MINGGUAN", "BULANAN" }));
@@ -872,20 +818,15 @@ public final class LimitAddOn extends javax.swing.JFrame {
             }
         });
         pnlAddLimitList.add(cmbTransactionPeriod);
-        cmbTransactionPeriod.setBounds(170, 110, 130, 23);
-
-        lblCount.setText("Kali");
-        lblCount.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
-        pnlAddLimitList.add(lblCount);
-        lblCount.setBounds(210, 140, 30, 23);
+        cmbTransactionPeriod.setBounds(130, 90, 130, 30);
 
         txaErrorMessage.setColumns(20);
-        txaErrorMessage.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         txaErrorMessage.setRows(5);
+        txaErrorMessage.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         scpErrorMessage.setViewportView(txaErrorMessage);
 
         pnlAddLimitList.add(scpErrorMessage);
-        scpErrorMessage.setBounds(170, 230, 240, 81);
+        scpErrorMessage.setBounds(130, 240, 380, 110);
 
         btnClearData.setText("Clear Data");
         btnClearData.setBackground(new java.awt.Color(0, 0, 255));
@@ -898,17 +839,7 @@ public final class LimitAddOn extends javax.swing.JFrame {
             }
         });
         pnlAddLimitList.add(btnClearData);
-        btnClearData.setBounds(500, 220, 130, 30);
-
-        btnGenerate.setText("Generate");
-        btnGenerate.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
-        btnGenerate.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnGenerateActionPerformed(evt);
-            }
-        });
-        pnlAddLimitList.add(btnGenerate);
-        btnGenerate.setBounds(420, 280, 130, 30);
+        btnClearData.setBounds(250, 510, 130, 30);
 
         btnUpdateSave.setText("Simpan");
         btnUpdateSave.setBackground(new java.awt.Color(0, 0, 255));
@@ -920,88 +851,246 @@ public final class LimitAddOn extends javax.swing.JFrame {
             }
         });
         pnlAddLimitList.add(btnUpdateSave);
-        btnUpdateSave.setBounds(640, 220, 110, 30);
+        btnUpdateSave.setBounds(390, 510, 110, 30);
 
-        lblByGroup.setText("By Group");
-        lblByGroup.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
-        pnlAddLimitList.add(lblByGroup);
-        lblByGroup.setBounds(70, 320, 96, 23);
+        lblGrup.setText("Grup");
+        lblGrup.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        pnlAddLimitList.add(lblGrup);
+        lblGrup.setBounds(30, 30, 96, 30);
 
-        txtTransactionLimit.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         txtTransactionLimit.setText("0");
+        txtTransactionLimit.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         txtTransactionLimit.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 txtTransactionLimitActionPerformed(evt);
             }
         });
         pnlAddLimitList.add(txtTransactionLimit);
-        txtTransactionLimit.setBounds(170, 140, 36, 23);
+        txtTransactionLimit.setBounds(130, 120, 36, 30);
 
-        jPanel3.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-
-        lblStartEvent.setText("Tgl Mulai Event");
-        lblStartEvent.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
-
-        lblEndEvent.setText("Tgl Akhir Event");
-        lblEndEvent.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
-
-        dtpStartDateEvent.setBackground(new java.awt.Color(51, 153, 255));
-        dtpStartDateEvent.setInheritsPopupMenu(true);
-        dtpStartDateEvent.setMinimumSize(new java.awt.Dimension(135, 15));
-        dtpStartDateEvent.setSettings(null);
-
-        dtpEndDateEvent.setBackground(new java.awt.Color(51, 153, 255));
-
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(lblStartEvent, javax.swing.GroupLayout.PREFERRED_SIZE, 96, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lblEndEvent, javax.swing.GroupLayout.PREFERRED_SIZE, 96, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(dtpStartDateEvent, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(dtpEndDateEvent, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(17, Short.MAX_VALUE))
-        );
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addComponent(dtpStartDateEvent, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(dtpEndDateEvent, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap())
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                        .addComponent(lblStartEvent, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(10, 10, 10)
-                        .addComponent(lblEndEvent, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(12, 12, 12))))
-        );
-
-        pnlAddLimitList.add(jPanel3);
-        jPanel3.setBounds(470, 50, 270, 77);
-
-        lblStatus.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         lblStatus.setText("Status");
+        lblStatus.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         pnlAddLimitList.add(lblStatus);
-        lblStatus.setBounds(480, 140, 80, 23);
+        lblStatus.setBounds(30, 150, 90, 30);
 
         cmbStatus.setEditable(true);
-        cmbStatus.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         cmbStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Aktif", "Non Aktif" }));
+        cmbStatus.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         cmbStatus.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cmbStatusActionPerformed(evt);
             }
         });
         pnlAddLimitList.add(cmbStatus);
-        cmbStatus.setBounds(580, 140, 110, 23);
+        cmbStatus.setBounds(130, 150, 190, 30);
+
+        dtpEndDateEvent.setBackground(new java.awt.Color(51, 153, 255));
+        pnlAddLimitList.add(dtpEndDateEvent);
+        dtpEndDateEvent.setBounds(130, 210, 191, 30);
+
+        lblEndEvent.setText("Tgl Akhir Event");
+        lblEndEvent.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        pnlAddLimitList.add(lblEndEvent);
+        lblEndEvent.setBounds(30, 210, 96, 20);
+
+        lblStartEvent.setText("Tgl Mulai Event");
+        lblStartEvent.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        pnlAddLimitList.add(lblStartEvent);
+        lblStartEvent.setBounds(30, 180, 96, 30);
+
+        dtpStartDateEvent.setBackground(new java.awt.Color(51, 153, 255));
+        dtpStartDateEvent.setInheritsPopupMenu(true);
+        dtpStartDateEvent.setMinimumSize(new java.awt.Dimension(135, 15));
+        dtpStartDateEvent.setSettings(null);
+        pnlAddLimitList.add(dtpStartDateEvent);
+        dtpStartDateEvent.setBounds(130, 180, 191, 30);
+
+        txtParamReseller.setEditable(false);
+        txtParamReseller.setText("$reseller$");
+        txtParamReseller.setBackground(new java.awt.Color(255, 255, 255));
+        txtParamReseller.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        txtParamReseller.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtParamResellerActionPerformed(evt);
+            }
+        });
+        txtParamReseller.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtParamResellerKeyReleased(evt);
+            }
+        });
+        pnlAddLimitList.add(txtParamReseller);
+        txtParamReseller.setBounds(130, 450, 190, 30);
+
+        txtParamKodeTransaksi.setEditable(false);
+        txtParamKodeTransaksi.setText("$kode_transaksi$");
+        txtParamKodeTransaksi.setBackground(new java.awt.Color(255, 255, 255));
+        txtParamKodeTransaksi.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        txtParamKodeTransaksi.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtParamKodeTransaksiActionPerformed(evt);
+            }
+        });
+        txtParamKodeTransaksi.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtParamKodeTransaksiKeyReleased(evt);
+            }
+        });
+        pnlAddLimitList.add(txtParamKodeTransaksi);
+        txtParamKodeTransaksi.setBounds(130, 360, 190, 30);
+
+        txtParamProduk.setEditable(false);
+        txtParamProduk.setText("$produk$");
+        txtParamProduk.setBackground(new java.awt.Color(255, 255, 255));
+        txtParamProduk.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        txtParamProduk.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtParamProdukActionPerformed(evt);
+            }
+        });
+        txtParamProduk.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtParamProdukKeyReleased(evt);
+            }
+        });
+        pnlAddLimitList.add(txtParamProduk);
+        txtParamProduk.setBounds(130, 390, 190, 30);
+
+        txtParamTujuan.setEditable(false);
+        txtParamTujuan.setText("$tujuan$");
+        txtParamTujuan.setBackground(new java.awt.Color(255, 255, 255));
+        txtParamTujuan.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        txtParamTujuan.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtParamTujuanActionPerformed(evt);
+            }
+        });
+        txtParamTujuan.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtParamTujuanKeyReleased(evt);
+            }
+        });
+        pnlAddLimitList.add(txtParamTujuan);
+        txtParamTujuan.setBounds(130, 420, 190, 30);
+
+        txtParamHarga.setEditable(false);
+        txtParamHarga.setText("$harga$");
+        txtParamHarga.setBackground(new java.awt.Color(255, 255, 255));
+        txtParamHarga.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        txtParamHarga.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtParamHargaActionPerformed(evt);
+            }
+        });
+        txtParamHarga.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtParamHargaKeyReleased(evt);
+            }
+        });
+        pnlAddLimitList.add(txtParamHarga);
+        txtParamHarga.setBounds(320, 360, 190, 30);
+
+        txtParamHargaBeli.setEditable(false);
+        txtParamHargaBeli.setText("$harga_beli$");
+        txtParamHargaBeli.setBackground(new java.awt.Color(255, 255, 255));
+        txtParamHargaBeli.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        txtParamHargaBeli.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtParamHargaBeliActionPerformed(evt);
+            }
+        });
+        txtParamHargaBeli.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtParamHargaBeliKeyReleased(evt);
+            }
+        });
+        pnlAddLimitList.add(txtParamHargaBeli);
+        txtParamHargaBeli.setBounds(320, 390, 190, 30);
+
+        txtParamSaldoAwal.setEditable(false);
+        txtParamSaldoAwal.setText("$saldo_awal$");
+        txtParamSaldoAwal.setBackground(new java.awt.Color(255, 255, 255));
+        txtParamSaldoAwal.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        txtParamSaldoAwal.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtParamSaldoAwalActionPerformed(evt);
+            }
+        });
+        txtParamSaldoAwal.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtParamSaldoAwalKeyReleased(evt);
+            }
+        });
+        pnlAddLimitList.add(txtParamSaldoAwal);
+        txtParamSaldoAwal.setBounds(320, 420, 190, 30);
+
+        javax.swing.GroupLayout jNullPanelLayout = new javax.swing.GroupLayout(jNullPanel);
+        jNullPanel.setLayout(jNullPanelLayout);
+        jNullPanelLayout.setHorizontalGroup(
+            jNullPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 450, Short.MAX_VALUE)
+        );
+        jNullPanelLayout.setVerticalGroup(
+            jNullPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 630, Short.MAX_VALUE)
+        );
+
+        pnlAddLimitList.add(jNullPanel);
+        jNullPanel.setBounds(540, 0, 450, 630);
+
+        lblLimitCount.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        lblLimitCount.setText("Kali");
+        pnlAddLimitList.add(lblLimitCount);
+        lblLimitCount.setBounds(170, 120, 30, 30);
+
+        lblRequiredGrup.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        lblRequiredGrup.setForeground(new java.awt.Color(255, 51, 51));
+        lblRequiredGrup.setText("*");
+        lblRequiredGrup.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        pnlAddLimitList.add(lblRequiredGrup);
+        lblRequiredGrup.setBounds(340, 30, 10, 30);
+
+        lblRequiredProduk.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        lblRequiredProduk.setForeground(new java.awt.Color(255, 51, 51));
+        lblRequiredProduk.setText("*");
+        lblRequiredProduk.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        pnlAddLimitList.add(lblRequiredProduk);
+        lblRequiredProduk.setBounds(340, 60, 10, 30);
+
+        lblRequiredPeriod.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        lblRequiredPeriod.setForeground(new java.awt.Color(255, 51, 51));
+        lblRequiredPeriod.setText("*");
+        lblRequiredPeriod.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        pnlAddLimitList.add(lblRequiredPeriod);
+        lblRequiredPeriod.setBounds(270, 90, 10, 30);
+
+        lblRequiredTransaction.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        lblRequiredTransaction.setForeground(new java.awt.Color(255, 51, 51));
+        lblRequiredTransaction.setText("*");
+        lblRequiredTransaction.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        pnlAddLimitList.add(lblRequiredTransaction);
+        lblRequiredTransaction.setBounds(200, 120, 10, 30);
+
+        lblRequiredStartDate.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        lblRequiredStartDate.setForeground(new java.awt.Color(255, 51, 51));
+        lblRequiredStartDate.setText("*");
+        lblRequiredStartDate.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        pnlAddLimitList.add(lblRequiredStartDate);
+        lblRequiredStartDate.setBounds(330, 180, 10, 30);
+
+        lblRequiredEndDate.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        lblRequiredEndDate.setForeground(new java.awt.Color(255, 51, 51));
+        lblRequiredEndDate.setText("*");
+        lblRequiredEndDate.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        pnlAddLimitList.add(lblRequiredEndDate);
+        lblRequiredEndDate.setBounds(330, 210, 10, 30);
+
+        lblRequiredErrorMessage.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        lblRequiredErrorMessage.setForeground(new java.awt.Color(255, 51, 51));
+        lblRequiredErrorMessage.setText("*");
+        lblRequiredErrorMessage.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        pnlAddLimitList.add(lblRequiredErrorMessage);
+        lblRequiredErrorMessage.setBounds(520, 240, 8, 30);
 
         tbdProgram.addTab("Daftar Limit", pnlAddLimitList);
 
@@ -1017,19 +1106,19 @@ public final class LimitAddOn extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(tbdProgram)
                 .addContainerGap())
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(359, 359, 359)
                 .addComponent(lblTitleHeader)
-                .addGap(243, 243, 243))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(30, Short.MAX_VALUE)
+                .addGap(31, 31, 31)
                 .addComponent(lblTitleHeader)
                 .addGap(18, 18, 18)
-                .addComponent(tbdProgram, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(28, 28, 28))
+                .addComponent(tbdProgram)
+                .addContainerGap())
         );
 
         lblTitleHeader.getAccessibleContext().setAccessibleName("jTitle");
@@ -1038,23 +1127,14 @@ public final class LimitAddOn extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void cmbByGroupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbByGroupActionPerformed
+    private void cmbGrupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbGrupActionPerformed
         // TODO add your handling code here:
 //        if (cmbByGroup.getSelectedItem() != "") {
 //            cmbByReseller.setEnabled(false);
 //        } else {
 //            cmbByReseller.setEnabled(true);
 //        }
-    }//GEN-LAST:event_cmbByGroupActionPerformed
-
-    private void cmbByResellerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbByResellerActionPerformed
-        // TODO add your handling code here:
-//        if (cmbByReseller.getSelectedItem() != "") {
-//            cmbByGroup.setEnabled(false);
-//        } else {
-//            cmbByGroup.setEnabled(true);
-//        }
-    }//GEN-LAST:event_cmbByResellerActionPerformed
+    }//GEN-LAST:event_cmbGrupActionPerformed
 
     private void cmbProdukActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbProdukActionPerformed
         // TODO add your handling code here:
@@ -1089,19 +1169,15 @@ public final class LimitAddOn extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btnClearDataActionPerformed
 
-    private void btnGenerateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGenerateActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btnGenerateActionPerformed
-
     private void btnUpdateSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateSaveActionPerformed
         // TODO add your handling code here:
-        if (cmbByReseller.getSelectedItem().equals("") || cmbProduk.getSelectedItem().equals("") || cmbTransactionPeriod.getSelectedItem().equals("") || txtTransactionLimit.getText().trim().equals("0") || dtpStartDateEvent.getText().equals("") || dtpEndDateEvent.getText().equals("")) {
+        if (cmbGrup.getSelectedItem().equals("") || cmbProduk.getSelectedItem().equals("") || cmbTransactionPeriod.getSelectedItem().equals("") || txtTransactionLimit.getText().trim().equals("0")
+                || txaErrorMessage.getText().equals("") || dtpStartDateEvent.getText().equals("") || dtpEndDateEvent.getText().equals("")) {
             JOptionPane.showMessageDialog(null, "Data yang anda masukan tidak lengkap", "Warning", JOptionPane.WARNING_MESSAGE);
         } else {
             if ("U".equals(flagUpdateSave)) {
                 try {
                     updateData();
-                    countLimitData();
                     btnClearData.setText("Clear Data");
                     btnUpdateSave.setText("Simpan");
                 } catch (Exception ex) {
@@ -1113,77 +1189,43 @@ public final class LimitAddOn extends javax.swing.JFrame {
                 } catch (Exception ex) {
                     Logger.getLogger(LimitAddOn.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                if (totalRow == 0) {
+                if (totalIndex == 0) {
                     saveData();
                 } else {
                     JOptionPane.showMessageDialog(null, "Data telah di input sebelumnya, silahkan cek Monitoring", "Error", JOptionPane.ERROR_MESSAGE);
-                    //JOptionPane.showMessageDialog(null, "Data telah di input sebelumnya, silahkan cek Monitoring");
-                }
-                try {
-                    countLimitData();
-                } catch (Exception ex) {
-                    Logger.getLogger(LimitAddOn.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-
-            if (totalRow == 0) {
-                btnEditData.setEnabled(false);
-                btnEditData.setToolTipText("Tidak Ada Data yang Bisa di Edit");
-            } else {
-                btnEditData.setEnabled(true);
-                btnEditData.setToolTipText("Edit Data Limit Transaksi");
-            }
-            flagUpdateSave = "";
         }
+
+        try {
+            showLimitHeader();
+        } catch (Exception ex) {
+            Logger.getLogger(LimitAddOn.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            defaultSetVariable();
+        } catch (Exception ex) {
+            Logger.getLogger(LimitAddOn.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        flagUpdateSave = "";
     }//GEN-LAST:event_btnUpdateSaveActionPerformed
 
-    private void cmbStatusFilterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbStatusFilterActionPerformed
-        try {
-            // TODO add your handling code here:
-            showLimitData();
-        } catch (Exception ex) {
-            Logger.getLogger(LimitAddOn.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        try {
-            comboFilter();
-        } catch (Exception ex) {
-            Logger.getLogger(LimitAddOn.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        defaultSelectedRow();
-    }//GEN-LAST:event_cmbStatusFilterActionPerformed
-
-    private void txtSearchFilterKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtSearchFilterKeyReleased
+    private void txtSearchFilterHeaderKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtSearchFilterHeaderKeyReleased
         // TODO add your handling code here:
-        searchTableFilter();
+        searchTableHeaderFilter();
         defaultSelectedRow();
         try {
-            showLimitData();
-            comboFilter();
+            showLimitHeader();
+            //comboFilter();
         } catch (Exception ex) {
             Logger.getLogger(LimitAddOn.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }//GEN-LAST:event_txtSearchFilterKeyReleased
+    }//GEN-LAST:event_txtSearchFilterHeaderKeyReleased
 
     private void txtTransactionLimitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtTransactionLimitActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txtTransactionLimitActionPerformed
-
-    private void cmbSearchByFilterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbSearchByFilterActionPerformed
-        try {
-            // TODO add your handling code here:
-            showLimitData();
-        } catch (Exception ex) {
-            Logger.getLogger(LimitAddOn.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        try {
-            comboFilter();
-        } catch (Exception ex) {
-            Logger.getLogger(LimitAddOn.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        defaultSelectedRow();
-    }//GEN-LAST:event_cmbSearchByFilterActionPerformed
 
     private void btnEditDataActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditDataActionPerformed
         // TODO add your handling code here:
@@ -1197,53 +1239,103 @@ public final class LimitAddOn extends javax.swing.JFrame {
             Logger.getLogger(LimitAddOn.class.getName()).log(Level.SEVERE, null, ex);
         }
         flagUpdateSave = "U";
-        cmbByGroup.setEnabled(false);
-        cmbByReseller.setEnabled(false);
+        cmbGrup.setEnabled(false);
         cmbProduk.setEnabled(false);
         btnClearData.setText("Batal");
         btnUpdateSave.setText("Ubah");
     }//GEN-LAST:event_btnEditDataActionPerformed
 
-    private void cmbByGroupItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cmbByGroupItemStateChanged
+    private void cmbGrupItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cmbGrupItemStateChanged
         // TODO add your handling code here:
         //System.out.println(cmbByGroup.getSelectedItem());
-        if (cmbByGroup.getSelectedItem() != "") {
-            cmbByReseller.setEnabled(false);
-        } else {
-            cmbByReseller.setEnabled(true);
-        }
-    }//GEN-LAST:event_cmbByGroupItemStateChanged
 
-    private void cmbByResellerItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cmbByResellerItemStateChanged
-        // TODO add your handling code here:
-        if (cmbByReseller.getSelectedItem() != "") {
-            cmbByGroup.setEnabled(false);
-        } else {
-            cmbByGroup.setEnabled(true);
-        }
-    }//GEN-LAST:event_cmbByResellerItemStateChanged
+    }//GEN-LAST:event_cmbGrupItemStateChanged
 
     private void btnRefreshDataActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRefreshDataActionPerformed
         // TODO add your handling code here:
+        txtSearchFilterHeader = null;
+
+        //searchTableHeaderFilter();
+        defaultSelectedRow();
         try {
-            // TODO add your handling code here:
-            //defaultSetVariable();
-            showLimitData();
-            comboFilter();
+            showLimitHeader();
+            //comboFilter();
         } catch (Exception ex) {
             Logger.getLogger(LimitAddOn.class.getName()).log(Level.SEVERE, null, ex);
         }
-
-        defaultSelectedRow();
     }//GEN-LAST:event_btnRefreshDataActionPerformed
 
-    private void txtSearchFilterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtSearchFilterActionPerformed
+    private void txtSearchFilterHeaderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtSearchFilterHeaderActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_txtSearchFilterActionPerformed
+    }//GEN-LAST:event_txtSearchFilterHeaderActionPerformed
 
     private void cmbStatusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbStatusActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_cmbStatusActionPerformed
+
+    private void txtSearchFilterDetailActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtSearchFilterDetailActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtSearchFilterDetailActionPerformed
+
+    private void txtSearchFilterDetailKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtSearchFilterDetailKeyReleased
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtSearchFilterDetailKeyReleased
+
+    private void txtParamResellerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtParamResellerActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtParamResellerActionPerformed
+
+    private void txtParamResellerKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtParamResellerKeyReleased
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtParamResellerKeyReleased
+
+    private void txtParamKodeTransaksiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtParamKodeTransaksiActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtParamKodeTransaksiActionPerformed
+
+    private void txtParamKodeTransaksiKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtParamKodeTransaksiKeyReleased
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtParamKodeTransaksiKeyReleased
+
+    private void txtParamProdukActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtParamProdukActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtParamProdukActionPerformed
+
+    private void txtParamProdukKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtParamProdukKeyReleased
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtParamProdukKeyReleased
+
+    private void txtParamTujuanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtParamTujuanActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtParamTujuanActionPerformed
+
+    private void txtParamTujuanKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtParamTujuanKeyReleased
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtParamTujuanKeyReleased
+
+    private void txtParamHargaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtParamHargaActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtParamHargaActionPerformed
+
+    private void txtParamHargaKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtParamHargaKeyReleased
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtParamHargaKeyReleased
+
+    private void txtParamHargaBeliActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtParamHargaBeliActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtParamHargaBeliActionPerformed
+
+    private void txtParamHargaBeliKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtParamHargaBeliKeyReleased
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtParamHargaBeliKeyReleased
+
+    private void txtParamSaldoAwalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtParamSaldoAwalActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtParamSaldoAwalActionPerformed
+
+    private void txtParamSaldoAwalKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtParamSaldoAwalKeyReleased
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtParamSaldoAwalKeyReleased
 
     /**
      * @param args the command line arguments
@@ -1278,30 +1370,33 @@ public final class LimitAddOn extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnClearData;
     private javax.swing.JButton btnEditData;
-    private javax.swing.JButton btnGenerate;
     private javax.swing.JButton btnRefreshData;
     private javax.swing.JButton btnUpdateSave;
-    private javax.swing.JComboBox<String> cmbByGroup;
-    private javax.swing.JComboBox<String> cmbByReseller;
+    private javax.swing.JComboBox<String> cmbGrup;
     private javax.swing.JComboBox<String> cmbProduk;
-    private javax.swing.JComboBox<String> cmbSearchByFilter;
     private javax.swing.JComboBox<String> cmbStatus;
-    private javax.swing.JComboBox<String> cmbStatusFilter;
     private javax.swing.JComboBox<String> cmbTransactionPeriod;
     private com.github.lgooddatepicker.components.DatePicker dtpEndDateEvent;
     private com.github.lgooddatepicker.components.DatePicker dtpStartDateEvent;
-    private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jNullPanel;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JLabel lblByGroup;
-    private javax.swing.JLabel lblByReseller;
-    private javax.swing.JLabel lblCount;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JLabel lblDetail;
     private javax.swing.JLabel lblEndEvent;
     private javax.swing.JLabel lblErrorMessage;
+    private javax.swing.JLabel lblGrup;
+    private javax.swing.JLabel lblHeader;
+    private javax.swing.JLabel lblLimitCount;
     private javax.swing.JLabel lblProduk;
-    private javax.swing.JLabel lblSearchByFilter;
+    private javax.swing.JLabel lblRequiredEndDate;
+    private javax.swing.JLabel lblRequiredErrorMessage;
+    private javax.swing.JLabel lblRequiredGrup;
+    private javax.swing.JLabel lblRequiredPeriod;
+    private javax.swing.JLabel lblRequiredProduk;
+    private javax.swing.JLabel lblRequiredStartDate;
+    private javax.swing.JLabel lblRequiredTransaction;
     private javax.swing.JLabel lblStartEvent;
     private javax.swing.JLabel lblStatus;
-    private javax.swing.JLabel lblStatusFilter;
     private javax.swing.JLabel lblTitleHeader;
     private javax.swing.JLabel lblTransactionLimit;
     private javax.swing.JLabel lblTransactionPeriod;
@@ -1309,9 +1404,18 @@ public final class LimitAddOn extends javax.swing.JFrame {
     private javax.swing.JPanel pnlMonitoring;
     private javax.swing.JScrollPane scpErrorMessage;
     private javax.swing.JTabbedPane tbdProgram;
-    private javax.swing.JTable tblEmmaLimitTransaction;
+    private javax.swing.JTable tblLimitDetail;
+    private javax.swing.JTable tblLimitHeader;
     private javax.swing.JTextArea txaErrorMessage;
-    private javax.swing.JTextField txtSearchFilter;
+    private javax.swing.JTextField txtParamHarga;
+    private javax.swing.JTextField txtParamHargaBeli;
+    private javax.swing.JTextField txtParamKodeTransaksi;
+    private javax.swing.JTextField txtParamProduk;
+    private javax.swing.JTextField txtParamReseller;
+    private javax.swing.JTextField txtParamSaldoAwal;
+    private javax.swing.JTextField txtParamTujuan;
+    private javax.swing.JTextField txtSearchFilterDetail;
+    private javax.swing.JTextField txtSearchFilterHeader;
     private javax.swing.JTextField txtTransactionLimit;
     // End of variables declaration//GEN-END:variables
 }

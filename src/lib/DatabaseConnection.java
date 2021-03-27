@@ -25,16 +25,16 @@ public class DatabaseConnection {
 
     /**
      *
+     * @param dbName
      * @return @throws java.lang.Exception
      */
-    public static Connection getConnection() throws Exception {
+    public static Connection getConnection(String dbName) throws Exception {
         String getServerName;
         String getDatabaseName;
         String getUsername;
         String getPassword;
         String integratedSecurity;
         String serverName;
-        String databaseName;
         String username;
         String password;
         int getLastIndex;
@@ -44,7 +44,6 @@ public class DatabaseConnection {
         try (BufferedReader data = new BufferedReader(new FileReader(connectionPath))) {
             //data readLine
             getServerName = data.readLine();
-            getDatabaseName = data.readLine();
             getUsername = data.readLine();
             getPassword = data.readLine();
 
@@ -55,14 +54,6 @@ public class DatabaseConnection {
                 getLastIndex = getServerName.length();
             }
             serverName = getServerName.substring(getServerName.indexOf("=") + 1, getLastIndex).trim();
-
-            //getDatabaseName
-            if (getDatabaseName.substring(getDatabaseName.length() - 1).equals(";")) {
-                getLastIndex = getDatabaseName.indexOf(";");
-            } else {
-                getLastIndex = getDatabaseName.length();
-            }
-            databaseName = getDatabaseName.substring(getDatabaseName.indexOf("=") + 1, getLastIndex).trim();
 
             //getUsername
             if (getUsername.substring(getUsername.length() - 1).equals(";")) {
@@ -81,7 +72,6 @@ public class DatabaseConnection {
             password = getPassword.substring(getPassword.indexOf("=") + 1, getLastIndex).trim();
 
             //System.out.println(serverName);
-            //System.out.println(databaseName);
             //System.out.println(username);
             //System.out.println(password);
         }
@@ -101,13 +91,11 @@ public class DatabaseConnection {
 
             try {
                 if (integratedSecurity.equals("true")) {
-                    Connect = DriverManager.getConnection("jdbc:sqlserver://" + serverName + ";databaseName=" + databaseName + ";integratedSecurity=" + integratedSecurity);
-                    //Connect = DriverManager.getConnection(pathAuthentication + ";integratedSecurity=" + integratedSecurity);
-                    System.out.println("Succesfully Database Connection : Windows Authentication");
+                    Connect = DriverManager.getConnection("jdbc:sqlserver://" + serverName + ";databaseName=" + dbName + ";integratedSecurity=" + integratedSecurity);
+                    //System.out.println("Succesfully Database Connection : Windows Authentication");
                 } else {
-                    Connect = DriverManager.getConnection("jdbc:sqlserver://" + serverName + ";databaseName=" + databaseName + ";integratedSecurity=" + integratedSecurity, username, password);
-                    //Connect = DriverManager.getConnection(pathAuthentication + ";integratedSecurity=" + integratedSecurity, username, password);
-                    System.out.println("Succesfully Database Connection : SQL Server Authentication");
+                    Connect = DriverManager.getConnection("jdbc:sqlserver://" + serverName + ";databaseName=" + dbName + ";integratedSecurity=" + integratedSecurity, username, password);
+                    //System.out.println("Succesfully Database Connection : SQL Server Authentication");
                 }
 
             } catch (SQLException se) {
