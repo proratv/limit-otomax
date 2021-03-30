@@ -105,6 +105,7 @@ public final class LimitAddOn extends javax.swing.JFrame {
 
             while (res.next()) {
                 cmbGrup.addItem(res.getString("kode").trim());
+                //txtDescGroup.setText(res.getString("nama").trim());
             }
         } catch (ClassNotFoundException | SQLException e) {
             System.out.println(e);
