@@ -821,7 +821,7 @@ public final class LimitAddOn extends javax.swing.JFrame {
                 .addComponent(txtSearchFilterDetail, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 209, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(28, Short.MAX_VALUE))
+                .addContainerGap(35, Short.MAX_VALUE))
         );
 
         tbdProgram.addTab("Monitoring", pnlMonitoring);
@@ -887,6 +887,7 @@ public final class LimitAddOn extends javax.swing.JFrame {
         cmbTransactionPeriod.setBounds(130, 90, 130, 30);
 
         txaErrorMessage.setColumns(20);
+        txaErrorMessage.setLineWrap(true);
         txaErrorMessage.setRows(5);
         txaErrorMessage.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         scpErrorMessage.setViewportView(txaErrorMessage);
@@ -1180,9 +1181,9 @@ public final class LimitAddOn extends javax.swing.JFrame {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(31, 31, 31)
+                .addContainerGap()
                 .addComponent(lblTitleHeader)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(tbdProgram)
                 .addContainerGap())
         );
