@@ -620,6 +620,8 @@ public final class LimitAddOn extends javax.swing.JFrame {
         lblRequiredStartDate = new javax.swing.JLabel();
         lblRequiredEndDate = new javax.swing.JLabel();
         lblRequiredErrorMessage = new javax.swing.JLabel();
+        txtDescProduct = new javax.swing.JTextField();
+        txtDescGroup = new javax.swing.JTextField();
         lblTitleHeader = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -665,15 +667,6 @@ public final class LimitAddOn extends javax.swing.JFrame {
         tblLimitDetail.setGridColor(new java.awt.Color(51, 51, 255));
         tblLimitDetail.setRowHeight(20);
         jScrollPane2.setViewportView(tblLimitDetail);
-        if (tblLimitDetail.getColumnModel().getColumnCount() > 0) {
-            tblLimitDetail.getColumnModel().getColumn(0).setResizable(false);
-            tblLimitDetail.getColumnModel().getColumn(1).setResizable(false);
-            tblLimitDetail.getColumnModel().getColumn(2).setResizable(false);
-            tblLimitDetail.getColumnModel().getColumn(3).setResizable(false);
-            tblLimitDetail.getColumnModel().getColumn(4).setResizable(false);
-            tblLimitDetail.getColumnModel().getColumn(5).setResizable(false);
-            tblLimitDetail.getColumnModel().getColumn(6).setResizable(false);
-        }
 
         txtSearchFilterHeader.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         txtSearchFilterHeader.addActionListener(new java.awt.event.ActionListener() {
@@ -747,17 +740,6 @@ public final class LimitAddOn extends javax.swing.JFrame {
             }
         });
         jScrollPane3.setViewportView(tblLimitHeader);
-        if (tblLimitHeader.getColumnModel().getColumnCount() > 0) {
-            tblLimitHeader.getColumnModel().getColumn(0).setResizable(false);
-            tblLimitHeader.getColumnModel().getColumn(1).setResizable(false);
-            tblLimitHeader.getColumnModel().getColumn(2).setResizable(false);
-            tblLimitHeader.getColumnModel().getColumn(3).setResizable(false);
-            tblLimitHeader.getColumnModel().getColumn(4).setResizable(false);
-            tblLimitHeader.getColumnModel().getColumn(5).setResizable(false);
-            tblLimitHeader.getColumnModel().getColumn(6).setResizable(false);
-            tblLimitHeader.getColumnModel().getColumn(7).setResizable(false);
-            tblLimitHeader.getColumnModel().getColumn(8).setResizable(false);
-        }
 
         txtSearchFilterDetail.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         txtSearchFilterDetail.addActionListener(new java.awt.event.ActionListener() {
@@ -1159,6 +1141,16 @@ public final class LimitAddOn extends javax.swing.JFrame {
         pnlAddLimitList.add(lblRequiredErrorMessage);
         lblRequiredErrorMessage.setBounds(520, 240, 8, 30);
 
+        txtDescProduct.setEditable(false);
+        txtDescProduct.setBackground(new java.awt.Color(204, 204, 204));
+        pnlAddLimitList.add(txtDescProduct);
+        txtDescProduct.setBounds(360, 60, 150, 30);
+
+        txtDescGroup.setEditable(false);
+        txtDescGroup.setBackground(new java.awt.Color(204, 204, 204));
+        pnlAddLimitList.add(txtDescGroup);
+        txtDescGroup.setBounds(360, 30, 150, 30);
+
         tbdProgram.addTab("Daftar Limit", pnlAddLimitList);
 
         lblTitleHeader.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -1488,6 +1480,8 @@ public final class LimitAddOn extends javax.swing.JFrame {
     private javax.swing.JTable tblLimitDetail;
     private javax.swing.JTable tblLimitHeader;
     private javax.swing.JTextArea txaErrorMessage;
+    private javax.swing.JTextField txtDescGroup;
+    private javax.swing.JTextField txtDescProduct;
     private javax.swing.JTextField txtParamHarga;
     private javax.swing.JTextField txtParamHargaBeli;
     private javax.swing.JTextField txtParamKodeTransaksi;
