@@ -75,7 +75,6 @@ public final class LimitAddOn extends javax.swing.JFrame {
         configComponent();
         configLimitTable();
         showLimitHeader();
-        //comboFilter();
         datePick();
         AutoCompleteDecorator.decorate(cmbGrup);
         AutoCompleteDecorator.decorate(cmbProduk);
@@ -105,7 +104,24 @@ public final class LimitAddOn extends javax.swing.JFrame {
 
             while (res.next()) {
                 cmbGrup.addItem(res.getString("kode").trim());
-                //txtDescGroup.setText(res.getString("nama").trim());
+            }
+        } catch (ClassNotFoundException | SQLException e) {
+            System.out.println(e);
+            JOptionPane.showMessageDialog(null, "Error Message: " + e.getMessage());
+        }
+    } // done
+
+    private void getDescGrup() throws Exception {
+        grupColumn = cmbGrup.getSelectedItem().toString();
+        try {
+            String query;
+            query = "select nama from level where kode = '" + grupColumn + "'";
+            Connection conn = (Connection) DatabaseConnection.getConnection(dbName1);
+            Statement stm = conn.createStatement();
+            ResultSet res = stm.executeQuery(query);
+
+            while (res.next()) {
+                txtDescGrup.setText(res.getString("nama").trim());
             }
         } catch (ClassNotFoundException | SQLException e) {
             System.out.println(e);
@@ -116,13 +132,31 @@ public final class LimitAddOn extends javax.swing.JFrame {
     private void byProdukList() throws Exception {
         try {
             String query;
-            query = "select distinct kode, nama from produk";
+            query = "select distinct kode from produk";
             Connection conn = (Connection) DatabaseConnection.getConnection(dbName1);
             Statement stm = conn.createStatement();
             ResultSet res = stm.executeQuery(query);
 
             while (res.next()) {
                 cmbProduk.addItem(res.getString("kode").trim());
+            }
+        } catch (ClassNotFoundException | SQLException e) {
+            System.out.println(e);
+            JOptionPane.showMessageDialog(null, "Error Message: " + e.getMessage());
+        }
+    } // done
+
+    private void getDescProduk() throws Exception {
+        produkColumn = cmbProduk.getSelectedItem().toString();
+        try {
+            String query;
+            query = "select nama from produk where kode = '" + produkColumn + "'";
+            Connection conn = (Connection) DatabaseConnection.getConnection(dbName1);
+            Statement stm = conn.createStatement();
+            ResultSet res = stm.executeQuery(query);
+
+            while (res.next()) {
+                txtDescProduk.setText(res.getString("nama").trim());
             }
         } catch (ClassNotFoundException | SQLException e) {
             System.out.println(e);
@@ -163,6 +197,8 @@ public final class LimitAddOn extends javax.swing.JFrame {
     private void defaultSetVariable() throws Exception {
         cmbGrup.setSelectedItem("");
         cmbProduk.setSelectedItem("");
+        txtDescGrup.setText("");
+        txtDescProduk.setText("");
         cmbTransactionPeriod.setSelectedItem("");
         txtTransactionLimit.setText("0");
         txaErrorMessage.setText("");
@@ -308,10 +344,10 @@ public final class LimitAddOn extends javax.swing.JFrame {
 
         try {
             String query;
-            query = "select aLimit.kode_limit, aLimit.reseller, reseller.nama, aLimit.transaksi_dalam_masa, \n" +
-                    "aLimit.transaksi_sedang_proses, aLimit.transaksi_total, aLimit.status\n" +
-                    "from EmmaDB.dbo.limit_dt aLimit join reseller on aLimit.reseller = reseller.kode\n" +
-                    "where aLimit.kode_limit = "+ kodeLimit +" order by kode_limit desc";
+            query = "select aLimit.kode_limit, aLimit.reseller, reseller.nama, aLimit.transaksi_dalam_masa, \n"
+                    + "aLimit.transaksi_sedang_proses, aLimit.transaksi_total, aLimit.status\n"
+                    + "from EmmaDB.dbo.limit_dt aLimit join reseller on aLimit.reseller = reseller.kode\n"
+                    + "where aLimit.kode_limit = " + kodeLimit + " order by kode_limit desc";
             Connection conn = (Connection) DatabaseConnection.getConnection(dbName1);
             Statement stm = conn.createStatement();
             ResultSet res = stm.executeQuery(query);
@@ -418,41 +454,6 @@ public final class LimitAddOn extends javax.swing.JFrame {
         }
     } // done
 
-    private void comboFilter() {
-        try {
-            String query;
-            query = "select * from limit_hd where grup = CASE WHEN " + grupColumn + " = grup THEN grup ELSE '' END order by kode_limit desc";
-            Connection conn = (Connection) DatabaseConnection.getConnection(dbName2);
-            Statement stm = conn.createStatement();
-            ResultSet res = stm.executeQuery(query);
-            DefaultTableModel model = (DefaultTableModel) tblLimitHeader.getModel();
-            model.setRowCount(0);
-
-            while (res.next()) {
-                SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
-                Date sqlDate1 = (Date) dateFormatter.parse(res.getString("tgl_mulai_event"));
-                Date sqlDate2 = (Date) dateFormatter.parse(res.getString("tgl_akhir_event"));
-
-                DateFormat dateFormat = new SimpleDateFormat("dd-MMM-yyyy");
-                startDate = dateFormat.format(sqlDate1);
-                endDate = dateFormat.format(sqlDate2);
-
-                isStatusColumn = res.getBoolean("status");
-                if (isStatusColumn == true) {
-                    statusColumn = "Aktif";
-                } else {
-                    statusColumn = "Non Aktif";
-                }
-                model.addRow(new Object[]{res.getString("kode_limit"), res.getString("grup"), res.getString("reseller"), res.getString("produk"), res.getString("jumlah_limit"), res.getString("masa_limit"), res.getString("transaksi_dalam_masa"), res.getString("transaksi_total"), statusColumn, startDate, endDate});
-            }
-        } catch (SQLException e) {
-            System.out.println("Error Message: " + e.getMessage());
-            JOptionPane.showMessageDialog(null, "Error Message: " + e.getMessage());
-        } catch (Exception ex) {
-            Logger.getLogger(LimitAddOn.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    } // please check for filtering limit header table
-
     private void searchTableHeaderFilter() {
         DefaultTableModel table = (DefaultTableModel) tblLimitHeader.getModel();
         String search;
@@ -462,7 +463,7 @@ public final class LimitAddOn extends javax.swing.JFrame {
         tblLimitHeader.setRowSorter(tr);
         tr.setRowFilter(RowFilter.regexFilter("(?i)" + search, 1, 2, 3, 4, 5, 6, 7, 8, 9));
     } // please check for filtering limit header table
-    
+
     private void searchTableDetailFilter() {
         DefaultTableModel table = (DefaultTableModel) tblLimitDetail.getModel();
         String search;
@@ -474,8 +475,6 @@ public final class LimitAddOn extends javax.swing.JFrame {
     } // please check for filtering limit header table
 
     private void saveData() {
-        DefaultTableModel model;
-        model = (DefaultTableModel) tblLimitDetail.getModel();
         try {
             String query;
             query = "INSERT INTO limit_hd (kode_limit, grup, produk, masa_limit, jumlah_limit, status, pesan_gagal, tgl_mulai_event, tgl_akhir_event, date_create, date_update) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -621,8 +620,8 @@ public final class LimitAddOn extends javax.swing.JFrame {
         lblRequiredStartDate = new javax.swing.JLabel();
         lblRequiredEndDate = new javax.swing.JLabel();
         lblRequiredErrorMessage = new javax.swing.JLabel();
-        txtDescProduct = new javax.swing.JTextField();
-        txtDescGroup = new javax.swing.JTextField();
+        txtDescProduk = new javax.swing.JTextField();
+        txtDescGrup = new javax.swing.JTextField();
         lblTitleHeader = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -850,6 +849,11 @@ public final class LimitAddOn extends javax.swing.JFrame {
 
         cmbProduk.setEditable(true);
         cmbProduk.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        cmbProduk.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                cmbProdukItemStateChanged(evt);
+            }
+        });
         cmbProduk.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cmbProdukActionPerformed(evt);
@@ -1142,15 +1146,15 @@ public final class LimitAddOn extends javax.swing.JFrame {
         pnlAddLimitList.add(lblRequiredErrorMessage);
         lblRequiredErrorMessage.setBounds(520, 240, 8, 30);
 
-        txtDescProduct.setEditable(false);
-        txtDescProduct.setBackground(new java.awt.Color(204, 204, 204));
-        pnlAddLimitList.add(txtDescProduct);
-        txtDescProduct.setBounds(360, 60, 150, 30);
+        txtDescProduk.setEditable(false);
+        txtDescProduk.setBackground(new java.awt.Color(204, 204, 204));
+        pnlAddLimitList.add(txtDescProduk);
+        txtDescProduk.setBounds(360, 60, 150, 30);
 
-        txtDescGroup.setEditable(false);
-        txtDescGroup.setBackground(new java.awt.Color(204, 204, 204));
-        pnlAddLimitList.add(txtDescGroup);
-        txtDescGroup.setBounds(360, 30, 150, 30);
+        txtDescGrup.setEditable(false);
+        txtDescGrup.setBackground(new java.awt.Color(204, 204, 204));
+        pnlAddLimitList.add(txtDescGrup);
+        txtDescGrup.setBounds(360, 30, 150, 30);
 
         tbdProgram.addTab("Daftar Limit", pnlAddLimitList);
 
@@ -1189,11 +1193,6 @@ public final class LimitAddOn extends javax.swing.JFrame {
 
     private void cmbGrupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbGrupActionPerformed
         // TODO add your handling code here:
-//        if (cmbByGroup.getSelectedItem() != "") {
-//            cmbByReseller.setEnabled(false);
-//        } else {
-//            cmbByReseller.setEnabled(true);
-//        }
     }//GEN-LAST:event_cmbGrupActionPerformed
 
     private void cmbProdukActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbProdukActionPerformed
@@ -1223,6 +1222,8 @@ public final class LimitAddOn extends javax.swing.JFrame {
         } else {
             try {
                 defaultSetVariable();
+                grupColumn = cmbGrup.getSelectedItem().toString();
+                //System.out.println(cmbGrup.getSelectedItem().toString());
             } catch (Exception ex) {
                 Logger.getLogger(LimitAddOn.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -1292,12 +1293,6 @@ public final class LimitAddOn extends javax.swing.JFrame {
         btnClearData.setText("Batal");
         btnUpdateSave.setText("Ubah");
     }//GEN-LAST:event_btnEditDataActionPerformed
-
-    private void cmbGrupItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cmbGrupItemStateChanged
-        // TODO add your handling code here:
-        //System.out.println(cmbByGroup.getSelectedItem());
-
-    }//GEN-LAST:event_cmbGrupItemStateChanged
 
     @SuppressWarnings("empty-statement")
     private void btnRefreshDataActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRefreshDataActionPerformed
@@ -1411,6 +1406,28 @@ public final class LimitAddOn extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_tblLimitHeaderMouseClicked
 
+    private void cmbGrupItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cmbGrupItemStateChanged
+        // TODO add your handling code here:    
+        if (grupColumn != "") {
+            try {
+                getDescGrup();
+            } catch (Exception ex) {
+                Logger.getLogger(LimitAddOn.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_cmbGrupItemStateChanged
+
+    private void cmbProdukItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cmbProdukItemStateChanged
+        // TODO add your handling code here:
+        if (produkColumn != "") {
+            try {
+                getDescProduk();
+            } catch (Exception ex) {
+                Logger.getLogger(LimitAddOn.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_cmbProdukItemStateChanged
+
     /**
      * @param args the command line arguments
      */
@@ -1481,8 +1498,8 @@ public final class LimitAddOn extends javax.swing.JFrame {
     private javax.swing.JTable tblLimitDetail;
     private javax.swing.JTable tblLimitHeader;
     private javax.swing.JTextArea txaErrorMessage;
-    private javax.swing.JTextField txtDescGroup;
-    private javax.swing.JTextField txtDescProduct;
+    private javax.swing.JTextField txtDescGrup;
+    private javax.swing.JTextField txtDescProduk;
     private javax.swing.JTextField txtParamHarga;
     private javax.swing.JTextField txtParamHargaBeli;
     private javax.swing.JTextField txtParamKodeTransaksi;
